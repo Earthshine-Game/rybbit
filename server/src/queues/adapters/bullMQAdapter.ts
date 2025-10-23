@@ -23,18 +23,51 @@ export class BullMQAdapter implements IJobQueue {
 
   async stop(): Promise<void> {
     console.info("[BullMQ] Stopping...");
+    const errors: Error[] = [];
 
     // Close all workers first
-    await Promise.all(Array.from(this.workers.values()).map(worker => worker.close()));
+    const workerResults = await Promise.allSettled(Array.from(this.workers.values()).map(worker => worker.close()));
+    workerResults.forEach((result, index) => {
+      if (result.status === "rejected") {
+        const workerName = Array.from(this.workers.keys())[index];
+        const error = new Error(`Failed to close worker ${workerName}: ${result.reason}`);
+        errors.push(error);
+        console.error(`[BullMQ] ${error.message}`);
+      }
+    });
     this.workers.clear();
 
     // Close all queue events
-    await Promise.all(Array.from(this.queueEvents.values()).map(qe => qe.close()));
+    const queueEventsResults = await Promise.allSettled(Array.from(this.queueEvents.values()).map(qe => qe.close()));
+    queueEventsResults.forEach((result, index) => {
+      if (result.status === "rejected") {
+        const queueName = Array.from(this.queueEvents.keys())[index];
+        const error = new Error(`Failed to close queue events for ${queueName}: ${result.reason}`);
+        errors.push(error);
+        console.error(`[BullMQ] ${error.message}`);
+      }
+    });
     this.queueEvents.clear();
 
     // Close all queues (this closes their Redis connections)
-    await Promise.all(Array.from(this.queues.values()).map(queue => queue.close()));
+    const queueResults = await Promise.allSettled(Array.from(this.queues.values()).map(queue => queue.close()));
+    queueResults.forEach((result, index) => {
+      if (result.status === "rejected") {
+        const queueName = Array.from(this.queues.keys())[index];
+        const error = new Error(`Failed to close queue ${queueName}: ${result.reason}`);
+        errors.push(error);
+        console.error(`[BullMQ] ${error.message}`);
+      }
+    });
     this.queues.clear();
+
+    if (errors.length > 0) {
+      const aggregatedError = new Error(
+        `BullMQ stop encountered ${errors.length} error(s): ${errors.map(e => e.message).join("; ")}`
+      );
+      console.error("[BullMQ] Stopped with errors");
+      throw aggregatedError;
+    }
 
     console.info("[BullMQ] Stopped successfully");
   }
