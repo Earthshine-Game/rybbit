@@ -304,12 +304,7 @@ export function ImportManager({ siteId, disabled }: ImportManagerProps) {
                     clearButtonText="Clear dates"
                     className="space-y-2"
                   />
-                  {errors.dateRange?.startDate && (
-                    <p className="text-sm text-red-600">{errors.dateRange.startDate.message}</p>
-                  )}
-                  {errors.dateRange?.endDate && (
-                    <p className="text-sm text-red-600">{errors.dateRange.endDate.message}</p>
-                  )}
+                  {errors.dateRange?.message && <p className="text-sm text-red-600">{errors.dateRange.message}</p>}
                 </div>
               )}
             />
