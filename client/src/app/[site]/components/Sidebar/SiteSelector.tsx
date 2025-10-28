@@ -36,7 +36,7 @@ function SiteSelectorContent({ onSiteSelect }: { onSiteSelect: () => void }) {
           {[
             {
               siteId: 21,
-              domain: "rybbit.io",
+              domain: "rybbit.com",
             },
             {
               siteId: 1,

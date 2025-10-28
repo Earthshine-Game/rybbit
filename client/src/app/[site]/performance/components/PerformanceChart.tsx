@@ -196,11 +196,11 @@ export function PerformanceChart() {
         <div className="flex items-center justify-between px-2 md:px-0">
           <div className="flex items-center space-x-4">
             <Link
-              href={session.data ? "/" : "https://rybbit.io"}
+              href={session.data ? "/" : "https://rybbit.com"}
               className={cn("text-lg font-semibold flex items-center gap-1.5 opacity-75", tilt_wrap.className)}
             >
               <Image src="/rybbit.svg" alt="Rybbit" width={20} height={20} />
-              rybbit.io
+              rybbit.com
             </Link>
           </div>
           <div className="flex items-center space-x-4">

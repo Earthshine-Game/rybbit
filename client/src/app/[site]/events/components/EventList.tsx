@@ -101,7 +101,7 @@ export function EventList({ events, isLoading, size = "small" }: EventListProps)
         <a
           target="_blank"
           rel="noopener noreferrer"
-          href="https://www.rybbit.io/docs/track-events"
+          href="https://www.rybbit.com/docs/track-events"
           className="text-neutral-400 w-full text-center mt-2 flex flex-row gap-1 items-center justify-center text-sm hover:underline hover:text-neutral-300"
         >
           <BookOpen className="w-4 h-4" />

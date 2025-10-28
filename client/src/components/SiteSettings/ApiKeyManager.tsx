@@ -45,14 +45,14 @@ export function ApiKeyManager({ siteId, disabled = false }: ApiKeyManagerProps) 
         <p className="text-xs text-muted-foreground mt-1">
           Generate an API key to track events from{" "}
           <Link
-            href="https://rybbit.io/docs/local-tracking"
+            href="https://rybbit.com/docs/local-tracking"
             target="_blank"
             className="text-indigo-300 hover:underline"
           >
             localhost
           </Link>
           , server-side applications, or mobile apps using the{" "}
-          <Link href="https://rybbit.io/docs/api" target="_blank" className="text-indigo-300 hover:underline">
+          <Link href="https://rybbit.com/docs/api" target="_blank" className="text-indigo-300 hover:underline">
             API endpoint
           </Link>
           .

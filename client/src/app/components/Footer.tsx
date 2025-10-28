@@ -13,7 +13,7 @@ export function Footer() {
       >
         v{APP_VERSION}
       </Link>
-      <Link href="https://rybbit.io/docs" className="hover:text-neutral-300">
+      <Link href="https://rybbit.com/docs" className="hover:text-neutral-300">
         Docs
       </Link>
       <Link href="https://github.com/rybbit-io/rybbit" className="hover:text-neutral-300">

@@ -20,7 +20,7 @@ export function TopBar() {
     <div className="flex py-2 pr-3 pl-6 items-center w-full  bg-neutral-950 justify-center border-b border-neutral-750">
       <div className="flex items-center justify-between flex-1">
         <div className="flex items-center space-x-4">
-          <Link href={session ? "/" : "https://rybbit.io"}>
+          <Link href={session ? "/" : "https://rybbit.com"}>
             <Image src="/rybbit-text.svg" alt="Rybbit" width={100} height={22} />
           </Link>
         </div>

@@ -142,7 +142,7 @@ export default function Page() {
       </Card>
       <div className="text-xs text-muted-foreground">
         <a
-          href="https://rybbit.io"
+          href="https://rybbit.com"
           target="_blank"
           rel="noopener"
           title="Rybbit - Open Source Privacy-Focused Web Analytics"

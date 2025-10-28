@@ -395,7 +395,7 @@ export default function SignupPage() {
 
         {/* Logo and title above the card */}
         <div className="relative z-10 mb-6 text-center">
-          <a href="https://rybbit.io" target="_blank" className="inline-block mb-2">
+          <a href="https://rybbit.com" target="_blank" className="inline-block mb-2">
             <Image src="/rybbit-text.svg" alt="Rybbit" width={150} height={34} />
           </a>
           <h1 className="text-lg text-neutral-300">Get started with Rybbit</h1>
@@ -440,7 +440,7 @@ export default function SignupPage() {
         {!IS_CLOUD && (
           <div className="text-xs text-muted-foreground relative z-10 mt-8">
             <a
-              href="https://rybbit.io"
+              href="https://rybbit.com"
               target="_blank"
               rel="noopener"
               title="Rybbit - Open Source Privacy-Focused Web Analytics"
