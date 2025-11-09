@@ -460,7 +460,7 @@ const start = async () => {
       weeklyReportService.startWeeklyReportCron();
     }
 
-    // Start the server
+    // Start the server first
     await server.listen({ port: 3001, host: "0.0.0.0" });
     server.log.info("Server is listening on http://0.0.0.0:3001");
 
