@@ -17,8 +17,8 @@ export interface GetGSCDataRequest {
     site: string;
   };
   Querystring: {
-    startDate: string;
-    endDate: string;
+    start_date: string;
+    end_date: string;
     dimension: "query" | "page" | "country" | "device";
   };
 }

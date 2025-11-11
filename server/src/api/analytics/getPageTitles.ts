@@ -29,7 +29,7 @@ type PageTitlesPaginatedResponse = {
 };
 
 const getPageTitlesQuery = (request: FastifyRequest<GetPageTitlesRequest>, isCountQuery: boolean = false) => {
-  const { startDate, endDate, timeZone, filters, limit, page, pastMinutesStart, pastMinutesEnd } = request.query;
+  const { filters, limit, page } = request.query;
 
   const timeStatement = getTimeStatement(request.query);
   const filterStatement = getFilterStatement(filters, Number(request.params.site), timeStatement);

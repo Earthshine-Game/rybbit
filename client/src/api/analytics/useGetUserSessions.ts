@@ -56,14 +56,14 @@ export function useGetSessionsInfinite(userId?: string) {
     queryFn: ({ pageParam = 1 }) => {
       // Use an object for request parameters so we can conditionally add fields
       const requestParams: Record<string, any> = {
-        timeZone,
+        time_zone: timeZone,
         filters: filteredFilters,
         page: pageParam,
       };
 
       // Add userId if provided
       if (userId) {
-        requestParams.userId = userId;
+        requestParams.user_id = userId;
       }
 
       // Add time parameters
@@ -71,8 +71,8 @@ export function useGetSessionsInfinite(userId?: string) {
         Object.assign(requestParams, timeParams);
       } else if (!userId) {
         // Only add date parameters if not filtering by userId
-        requestParams.startDate = timeParams.startDate;
-        requestParams.endDate = timeParams.endDate;
+        requestParams.start_date = timeParams.start_date;
+        requestParams.end_date = timeParams.end_date;
       }
 
       return authedFetch<APIResponse<GetSessionsResponse>>(`/sessions/${site}`, requestParams);
@@ -198,8 +198,8 @@ export function useGetUserSessionCount(userId: string) {
     queryKey: ["user-session-count", userId, site],
     queryFn: () => {
       return authedFetch<APIResponse<UserSessionCountResponse[]>>(`/user/session-count/${site}`, {
-        userId,
-        timeZone,
+        user_id: userId,
+        time_zone: timeZone,
       });
     },
     staleTime: Infinity,

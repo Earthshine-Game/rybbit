@@ -48,12 +48,12 @@ export interface GetSessionsRequest {
   Querystring: FilterParams<{
     limit: number;
     page: number;
-    userId?: string;
+    user_id?: string;
   }>;
 }
 
 export async function getSessions(req: FastifyRequest<GetSessionsRequest>, res: FastifyReply) {
-  const { filters, page, userId, limit } = req.query;
+  const { filters, page, user_id: userId, limit } = req.query;
   const site = req.params.site;
 
   const timeStatement = getTimeStatement(req.query);
@@ -107,7 +107,7 @@ export async function getSessions(req: FastifyRequest<GetSessionsRequest>, res: 
       FROM events
       WHERE
           site_id = {siteId:Int32}
-          ${userId ? ` AND user_id = {userId:String}` : ""}
+          ${userId ? ` AND user_id = {user_id:String}` : ""}
           ${timeStatement}
       GROUP BY
           session_id,
@@ -126,7 +126,7 @@ export async function getSessions(req: FastifyRequest<GetSessionsRequest>, res: 
       format: "JSONEachRow",
       query_params: {
         siteId: Number(site),
-        userId,
+        user_id: userId,
         limit: limit || 100,
         offset: (page - 1) * (limit || 100),
       },

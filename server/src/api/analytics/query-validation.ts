@@ -14,21 +14,21 @@ const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
  * Schema for simplified date parameters without table
  */
 const fillDateParamsSchema = z.object({
-  startDate: z
+  start_date: z
     .string()
     .regex(dateRegex, { message: "Invalid date format. Use YYYY-MM-DD" })
     .optional()
     .refine(date => !date || !isNaN(Date.parse(date)), {
       message: "Invalid date value",
     }),
-  endDate: z
+  end_date: z
     .string()
     .regex(dateRegex, { message: "Invalid date format. Use YYYY-MM-DD" })
     .optional()
     .refine(date => !date || !isNaN(Date.parse(date)), {
       message: "Invalid date value",
     }),
-  timeZone: z
+  time_zone: z
     .string()
     .min(1, { message: "Time zone cannot be empty" })
     .refine(
@@ -76,21 +76,21 @@ const timeStatementParamsSchema = z
  */
 const filterParamsTimeStatementFillSchema = z
   .object({
-    startDate: z
+    start_date: z
       .string()
       .regex(dateRegex, { message: "Invalid date format. Use YYYY-MM-DD" })
       .optional()
       .refine(date => !date || !isNaN(Date.parse(date)), {
         message: "Invalid date value",
       }),
-    endDate: z
+    end_date: z
       .string()
       .regex(dateRegex, { message: "Invalid date format. Use YYYY-MM-DD" })
       .optional()
       .refine(date => !date || !isNaN(Date.parse(date)), {
         message: "Invalid date value",
       }),
-    timeZone: z
+    time_zone: z
       .string()
       .min(1, { message: "Time zone cannot be empty" })
       .optional()
@@ -107,7 +107,7 @@ const filterParamsTimeStatementFillSchema = z
         },
         { message: "Invalid time zone" }
       ),
-    pastMinutesStart: z
+    past_minutes_start: z
       .union([z.string(), z.number()])
       .optional()
       .transform(val => {
@@ -116,9 +116,9 @@ const filterParamsTimeStatementFillSchema = z
         return isNaN(num) ? undefined : num;
       })
       .refine(val => val === undefined || val >= 0, {
-        message: "pastMinutesStart must be non-negative",
+        message: "past_minutes_start must be non-negative",
       }),
-    pastMinutesEnd: z
+    past_minutes_end: z
       .union([z.string(), z.number()])
       .optional()
       .transform(val => {
@@ -127,29 +127,29 @@ const filterParamsTimeStatementFillSchema = z
         return isNaN(num) ? undefined : num;
       })
       .refine(val => val === undefined || val >= 0, {
-        message: "pastMinutesEnd must be non-negative",
+        message: "past_minutes_end must be non-negative",
       }),
     filters: z.string().optional(),
   })
   .refine(
     data => {
-      const hasDateParams = data.startDate && data.endDate && data.timeZone;
-      const hasPastMinutesParams = data.pastMinutesStart !== undefined && data.pastMinutesEnd !== undefined;
+      const hasDateParams = data.start_date && data.end_date && data.time_zone;
+      const hasPastMinutesParams = data.past_minutes_start !== undefined && data.past_minutes_end !== undefined;
       return hasDateParams || hasPastMinutesParams;
     },
     {
-      message: "Either (startDate, endDate, timeZone) or (pastMinutesStart, pastMinutesEnd) must be provided",
+      message: "Either (start_date, end_date, time_zone) or (past_minutes_start, past_minutes_end) must be provided",
     }
   )
   .refine(
     data => {
-      if (data.pastMinutesStart !== undefined && data.pastMinutesEnd !== undefined) {
-        return data.pastMinutesStart > data.pastMinutesEnd;
+      if (data.past_minutes_start !== undefined && data.past_minutes_end !== undefined) {
+        return data.past_minutes_start > data.past_minutes_end;
       }
       return true;
     },
     {
-      message: "pastMinutesStart must be greater than pastMinutesEnd (start = older, end = newer)",
+      message: "past_minutes_start must be greater than past_minutes_end (start = older, end = newer)",
     }
   );
 

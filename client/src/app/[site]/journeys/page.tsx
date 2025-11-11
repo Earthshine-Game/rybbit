@@ -28,7 +28,7 @@ export default function JourneysPage() {
   const { data, isLoading, error } = useJourneys({
     siteId: siteMetadata?.siteId,
     steps,
-    timeZone: timeZone,
+    timeZone,
     time,
     limit: maxJourneys,
     stepFilters,

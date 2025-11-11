@@ -36,7 +36,7 @@ export async function getGoals(
     };
     Querystring: FilterParams<{
       page?: string;
-      pageSize?: string;
+      page_size?: string;
       sort?: string;
       order?: "asc" | "desc";
     }>;
@@ -44,7 +44,7 @@ export async function getGoals(
   reply: FastifyReply
 ) {
   const { site } = request.params;
-  const { filters, page = "1", pageSize = "10", sort = "createdAt", order = "desc" } = request.query;
+  const { filters, page = "1", page_size: pageSize = "10", sort = "createdAt", order = "desc" } = request.query;
 
   const pageNumber = parseInt(page, 10);
   const pageSizeNumber = parseInt(pageSize, 10);

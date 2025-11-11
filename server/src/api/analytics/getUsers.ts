@@ -26,25 +26,14 @@ export interface GetUsersRequest {
   };
   Querystring: FilterParams<{
     page?: string;
-    pageSize?: string;
-    sortBy?: string;
-    sortOrder?: string;
+    page_size?: string;
+    sort_by?: string;
+    sort_order?: string;
   }>;
 }
 
 export async function getUsers(req: FastifyRequest<GetUsersRequest>, res: FastifyReply) {
-  const {
-    startDate,
-    endDate,
-    timeZone,
-    filters,
-    page = "1",
-    pageSize = "20",
-    sortBy = "last_seen",
-    sortOrder = "desc",
-    pastMinutesStart,
-    pastMinutesEnd,
-  } = req.query;
+  const { filters, page = "1", page_size: pageSize = "20", sort_by: sortBy = "last_seen", sort_order: sortOrder = "desc" } = req.query;
   const site = req.params.site;
 
   const pageNum = parseInt(page, 10);

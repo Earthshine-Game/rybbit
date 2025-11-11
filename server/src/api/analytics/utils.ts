@@ -5,17 +5,17 @@ import { filterParamSchema, validateFilters, validateTimeStatementParams } from 
 import { FilterParameter, FilterType } from "./types.js";
 
 export function getTimeStatement(
-  params: Pick<FilterParams, "startDate" | "endDate" | "timeZone" | "pastMinutesStart" | "pastMinutesEnd">
+  params: Pick<FilterParams, "start_date" | "end_date" | "time_zone" | "past_minutes_start" | "past_minutes_end">
 ) {
-  const { startDate, endDate, timeZone, pastMinutesStart, pastMinutesEnd } = params;
+  const { start_date, end_date, time_zone, past_minutes_start, past_minutes_end } = params;
 
   // Construct the legacy format for validation
   const pastMinutesRange =
-    pastMinutesStart !== undefined && pastMinutesEnd !== undefined
-      ? { start: Number(pastMinutesStart), end: Number(pastMinutesEnd) }
+    past_minutes_start !== undefined && past_minutes_end !== undefined
+      ? { start: Number(past_minutes_start), end: Number(past_minutes_end) }
       : undefined;
 
-  const date = startDate && endDate && timeZone ? { startDate, endDate, timeZone } : undefined;
+  const date = start_date && end_date && time_zone ? { start_date, end_date, time_zone } : undefined;
 
   // Sanitize inputs with Zod
   const sanitized = validateTimeStatementParams({
@@ -24,21 +24,21 @@ export function getTimeStatement(
   });
 
   if (sanitized.date) {
-    const { startDate, endDate, timeZone } = sanitized.date;
-    if (!startDate && !endDate) {
+    const { start_date, end_date, time_zone } = sanitized.date;
+    if (!start_date && !end_date) {
       return "";
     }
 
     // Use SqlString.escape for date and timeZone values
     return `AND timestamp >= toTimeZone(
-      toStartOfDay(toDateTime(${SqlString.escape(startDate)}, ${SqlString.escape(timeZone)})),
+      toStartOfDay(toDateTime(${SqlString.escape(start_date)}, ${SqlString.escape(time_zone)})),
       'UTC'
       )
       AND timestamp < if(
-        toDate(${SqlString.escape(endDate)}) = toDate(now(), ${SqlString.escape(timeZone)}),
+        toDate(${SqlString.escape(end_date)}) = toDate(now(), ${SqlString.escape(time_zone)}),
         now(),
         toTimeZone(
-          toStartOfDay(toDateTime(${SqlString.escape(endDate)}, ${SqlString.escape(timeZone)})) + INTERVAL 1 DAY,
+          toStartOfDay(toDateTime(${SqlString.escape(end_date)}, ${SqlString.escape(time_zone)})) + INTERVAL 1 DAY,
           'UTC'
         )
       )`;
@@ -165,9 +165,10 @@ export function getFilterStatement(filters: string, siteId?: number, timeStateme
         // This ensures we filter to sessions containing the event, but still count all pageviews in those sessions
         if (filter.parameter === "event_name") {
           const whereClause = [siteIdFilter, timeFilter].filter(Boolean).join(" AND ");
-          const eventNameCondition = filter.value.length === 1
-            ? `event_name ${filterTypeToOperator(filter.type)} ${SqlString.escape(x + filter.value[0] + x)}`
-            : `(${filter.value.map(value => `event_name ${filterTypeToOperator(filter.type)} ${SqlString.escape(x + value + x)}`).join(" OR ")})`;
+          const eventNameCondition =
+            filter.value.length === 1
+              ? `event_name ${filterTypeToOperator(filter.type)} ${SqlString.escape(x + filter.value[0] + x)}`
+              : `(${filter.value.map(value => `event_name ${filterTypeToOperator(filter.type)} ${SqlString.escape(x + value + x)}`).join(" OR ")})`;
 
           const finalWhere = whereClause
             ? `WHERE ${whereClause} AND ${eventNameCondition}`

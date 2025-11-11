@@ -8,8 +8,8 @@ export interface GetUserSessionCountRequest {
     site: string;
   };
   Querystring: {
-    userId?: string;
-    timeZone?: string;
+    user_id?: string;
+    time_zone?: string;
   };
 }
 
@@ -20,10 +20,10 @@ export type GetUserSessionCountResponse = {
 
 export async function getUserSessionCount(req: FastifyRequest<GetUserSessionCountRequest>, res: FastifyReply) {
   const { site } = req.params;
-  const { userId, timeZone = "UTC" } = req.query;
+  const { user_id: userId, time_zone: timeZone = "UTC" } = req.query;
 
   if (!userId) {
-    return res.status(400).send({ error: "userId is required" });
+    return res.status(400).send({ error: "user_id is required" });
   }
 
   const query = `

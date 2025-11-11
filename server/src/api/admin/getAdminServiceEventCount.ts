@@ -15,9 +15,9 @@ type ServiceEventCountResponse = {
 export async function getAdminServiceEventCount(
   req: FastifyRequest<{
     Querystring: {
-      startDate?: string;
-      endDate?: string;
-      timeZone?: string;
+      start_date?: string;
+      end_date?: string;
+      time_zone?: string;
     };
   }>,
   res: FastifyReply
@@ -28,7 +28,7 @@ export async function getAdminServiceEventCount(
     return res.status(401).send({ error: "Unauthorized" });
   }
 
-  const { startDate, endDate, timeZone = "UTC" } = req.query;
+  const { start_date, end_date, time_zone = "UTC" } = req.query;
 
   try {
     // Build time filter for the query
@@ -36,24 +36,24 @@ export async function getAdminServiceEventCount(
     let fillFromDate = "";
     let fillToDate = "";
 
-    if (startDate && endDate) {
+    if (start_date && end_date) {
       timeFilter = `AND event_hour >= toTimeZone(
-        toStartOfDay(toDateTime(${SqlString.escape(startDate)}, ${SqlString.escape(timeZone)})),
+        toStartOfDay(toDateTime(${SqlString.escape(start_date)}, ${SqlString.escape(time_zone)})),
         'UTC'
       )
       AND event_hour < if(
-        toDate(${SqlString.escape(endDate)}) = toDate(now(), ${SqlString.escape(timeZone)}),
+        toDate(${SqlString.escape(end_date)}) = toDate(now(), ${SqlString.escape(time_zone)}),
         now(),
         toTimeZone(
-          toStartOfDay(toDateTime(${SqlString.escape(endDate)}, ${SqlString.escape(timeZone)})) + INTERVAL 1 DAY,
+          toStartOfDay(toDateTime(${SqlString.escape(end_date)}, ${SqlString.escape(time_zone)})) + INTERVAL 1 DAY,
           'UTC'
         )
       )`;
 
       // Set up WITH FILL parameters - use UTC midnight boundaries
-      fillFromDate = `FROM toStartOfDay(toDateTime(${SqlString.escape(startDate)}))`;
+      fillFromDate = `FROM toStartOfDay(toDateTime(${SqlString.escape(start_date)}))`;
 
-      fillToDate = `TO toStartOfDay(toDateTime(${SqlString.escape(endDate)})) + INTERVAL 1 DAY`;
+      fillToDate = `TO toStartOfDay(toDateTime(${SqlString.escape(end_date)})) + INTERVAL 1 DAY`;
     } else {
       // Default to last 30 days if no date range provided
       timeFilter = "AND event_hour >= toStartOfDay(now()) - INTERVAL 30 DAY";

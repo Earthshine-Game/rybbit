@@ -21,7 +21,7 @@ export function useGetEventProperties(eventName: string | null) {
     queryFn: () => {
       const params = {
         ...timeParams,
-        eventName,
+        event_name: eventName,
         filters: filteredFilters.length > 0 ? filteredFilters : undefined,
       };
 

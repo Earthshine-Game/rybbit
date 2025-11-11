@@ -56,7 +56,7 @@ export function useGetGoals({
         ...timeParams,
         filters: filteredFilters,
         page,
-        pageSize,
+        page_size: pageSize,
         sort,
         order,
       });

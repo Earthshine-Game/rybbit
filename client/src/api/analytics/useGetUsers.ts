@@ -51,12 +51,12 @@ export function useGetUsers(options: GetUsersOptions) {
     queryFn: async () => {
       // Build request parameters
       const requestParams: Record<string, any> = {
-        timeZone,
+        time_zone: timeZone,
         filters: filteredFilters,
         page,
-        pageSize,
-        sortBy,
-        sortOrder,
+        page_size: pageSize,
+        sort_by: sortBy,
+        sort_order: sortOrder,
       };
 
       // Add time parameters (getQueryParams handles both past-minutes and regular modes)

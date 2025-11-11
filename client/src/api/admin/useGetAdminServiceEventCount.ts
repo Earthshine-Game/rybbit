@@ -23,9 +23,9 @@ async function getAdminServiceEventCount({
   timeZone: string;
 }): Promise<GetServiceEventCountResponse> {
   const params = new URLSearchParams();
-  if (startDate) params.append("startDate", startDate);
-  if (endDate) params.append("endDate", endDate);
-  if (timeZone) params.append("timeZone", timeZone);
+  if (startDate) params.append("start_date", startDate);
+  if (endDate) params.append("end_date", endDate);
+  if (timeZone) params.append("time_zone", timeZone);
 
   return authedFetch("/admin/service-event-count", Object.fromEntries(params));
 }

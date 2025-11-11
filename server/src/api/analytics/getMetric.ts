@@ -53,6 +53,7 @@ const getQuery = (request: FastifyRequest<GetMetricRequest>, isCountQuery: boole
   const site = request.params.site;
 
   const timeStatement = getTimeStatement(request.query);
+
   const filterStatement = getFilterStatement(filters, Number(site), timeStatement);
 
   let validatedLimit: number | null = null;

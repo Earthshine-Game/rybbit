@@ -10,8 +10,8 @@ interface GetPerformanceByDimensionRequest {
   Querystring: FilterParams<{
     limit?: number;
     page?: number;
-    sortBy?: string;
-    sortOrder?: "asc" | "desc";
+    sort_by?: string;
+    sort_order?: "asc" | "desc";
     dimension: string;
   }>;
 }
@@ -54,19 +54,7 @@ type GetPerformanceByDimensionPaginatedResponse = {
 
 const getQuery = (request: FastifyRequest<GetPerformanceByDimensionRequest>, isCountQuery: boolean = false) => {
   const queryParams = request.query;
-  const {
-    startDate,
-    endDate,
-    timeZone,
-    filters,
-    limit,
-    page,
-    pastMinutesStart,
-    pastMinutesEnd,
-    sortBy,
-    sortOrder,
-    dimension,
-  } = queryParams;
+  const { filters, limit, page, sort_by: sortBy, sort_order: sortOrder, dimension } = queryParams;
 
   // Validate dimension
   const validDimensions = ["pathname", "country", "device_type", "browser", "operating_system", "region"];

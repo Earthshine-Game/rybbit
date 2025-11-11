@@ -26,7 +26,7 @@ const getMin = (time: Time, bucket: TimeBucket) => {
   //   if (bucket === "hour") {
   //     return DateTime.now()
   //       .setZone("UTC")
-  //       .minus({ minutes: time.pastMinutesStart * 2 })
+  //       .minus({ minutes: time.past_minutes_start * 2 })
   //       .startOf("hour")
   //       .toJSDate();
   //   }
