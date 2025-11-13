@@ -50,8 +50,8 @@ export async function createSiteImport(request: FastifyRequest<CreateSiteImportR
 
     const organizationId = siteRecord.organizationId;
 
-    // Check concurrent import limit using singleton
-    if (!importQuotaManager.canStartImport(organizationId)) {
+    // Atomically check and register import (prevents race condition)
+    if (!importQuotaManager.startImport(organizationId)) {
       return reply.status(429).send({ error: "Only 1 concurrent import allowed per organization" });
     }
 
@@ -64,7 +64,7 @@ export async function createSiteImport(request: FastifyRequest<CreateSiteImportR
     const earliestAllowedDate = oldestAllowedDate.toFormat("yyyy-MM-dd");
     const latestAllowedDate = DateTime.utc().toFormat("yyyy-MM-dd");
 
-    // Create import record
+    // Create import record (DB generates importId)
     const [importRecord] = await db
       .insert(importStatus)
       .values({
@@ -72,9 +72,6 @@ export async function createSiteImport(request: FastifyRequest<CreateSiteImportR
         organizationId,
       })
       .returning({ importId: importStatus.importId });
-
-    // Register import with quota manager
-    importQuotaManager.registerImport(organizationId, importRecord.importId);
 
     return reply.send({
       data: {

@@ -121,7 +121,7 @@ export async function batchImportEvents(request: FastifyRequest<BatchImportReque
       // If this is the last batch, mark import as completed
       if (isLastBatch) {
         await completeImport(importId);
-        importQuotaManager.completeImport(siteRecord.organizationId, importId);
+        importQuotaManager.completeImport(siteRecord.organizationId);
       }
 
       // Return counts to client

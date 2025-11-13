@@ -7,7 +7,6 @@ interface CachedTracker {
 }
 
 interface ActiveImport {
-  importId: string;
   startedAt: number;
 }
 
@@ -52,32 +51,16 @@ class ImportQuotaManager {
   }
 
   /**
-   * Check if an organization can start a new import
-   * Based on concurrent import limit
+   * Atomically check and register a new import
+   * Returns true if import was registered, false if limit reached
    */
-  canStartImport(organizationId: string): boolean {
+  startImport(organizationId: string): boolean {
     if (!IS_CLOUD) {
       return true; // No limits for self-hosted
     }
 
-    const activeSet = this.activeImports.get(organizationId);
-    if (!activeSet) {
-      return true; // No active imports
-    }
-
-    // Clean up abandoned imports before checking
+    // Clean up abandoned imports first
     this.cleanupAbandonedImports(organizationId);
-
-    return activeSet.size < this.CONCURRENT_IMPORT_LIMIT;
-  }
-
-  /**
-   * Register a new import as active
-   */
-  registerImport(organizationId: string, importId: string): void {
-    if (!IS_CLOUD) {
-      return; // No tracking for self-hosted
-    }
 
     let activeSet = this.activeImports.get(organizationId);
     if (!activeSet) {
@@ -85,27 +68,33 @@ class ImportQuotaManager {
       this.activeImports.set(organizationId, activeSet);
     }
 
+    // Check limit
+    if (activeSet.size >= this.CONCURRENT_IMPORT_LIMIT) {
+      return false; // At capacity
+    }
+
+    // Register the import (we only track count and timestamps)
     activeSet.add({
-      importId,
       startedAt: Date.now(),
     });
+
+    return true;
   }
 
   /**
    * Mark an import as completed (remove from active tracking)
+   * Since we only allow 1 concurrent import, we can just clear the set
    */
-  completeImport(organizationId: string, importId: string): void {
+  completeImport(organizationId: string): void {
     const activeSet = this.activeImports.get(organizationId);
     if (!activeSet) {
       return;
     }
 
-    // Find and remove the import
-    for (const activeImport of activeSet) {
-      if (activeImport.importId === importId) {
-        activeSet.delete(activeImport);
-        break;
-      }
+    // Remove the first (and only, since limit=1) import
+    const firstImport = activeSet.values().next().value;
+    if (firstImport) {
+      activeSet.delete(firstImport);
     }
 
     // Clean up empty sets

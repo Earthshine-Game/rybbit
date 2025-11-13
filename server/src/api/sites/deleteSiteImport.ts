@@ -88,7 +88,7 @@ export async function deleteSiteImport(request: FastifyRequest<DeleteImportReque
 
     // Notify quota manager that import is no longer active
     if (siteRecord) {
-      importQuotaManager.completeImport(siteRecord.organizationId, importId);
+      importQuotaManager.completeImport(siteRecord.organizationId);
     }
 
     return reply.send({
