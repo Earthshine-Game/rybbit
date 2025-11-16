@@ -91,7 +91,7 @@ export const activeSessions = pgTable("active_sessions", {
 
 export const funnels = pgTable("funnels", {
   reportId: serial("report_id").primaryKey().notNull(),
-  siteId: integer("site_id").references(() => sites.siteId),
+  siteId: integer("site_id").references(() => sites.siteId, { onDelete: "cascade" }),
   userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
   data: jsonb(),
   createdAt: timestamp("created_at", { mode: "string" }).defaultNow(),
@@ -231,7 +231,7 @@ export const goals = pgTable(
       columns: [table.siteId],
       foreignColumns: [sites.siteId],
       name: "goals_site_id_sites_site_id_fk",
-    }),
+    }).onDelete("cascade"),
   ]
 );
 
