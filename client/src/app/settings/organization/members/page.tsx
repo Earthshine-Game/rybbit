@@ -4,21 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../../../components
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../../../components/ui/table";
 import { authClient } from "../../../../lib/auth";
 
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useOrganizationMembers } from "../../../../api/admin/auth";
 import { useOrganizationInvitations } from "../../../../api/admin/organizations";
 import { NoOrganization } from "../../../../components/NoOrganization";
-import { InviteMemberDialog } from "./components/InviteMemberDialog";
+import { Button } from "../../../../components/ui/button";
+import { Input } from "../../../../components/ui/input";
 import { useSetPageTitle } from "../../../../hooks/useSetPageTitle";
-import { EditOrganizationDialog } from "./components/EditOrganizationDialog";
-import { DeleteOrganizationDialog } from "./components/DeleteOrganizationDialog";
-import { RemoveMemberDialog } from "./components/RemoveMemberDialog";
-import { Invitations } from "./components/Invitations";
 import { IS_CLOUD } from "../../../../lib/const";
 import { CreateUserDialog } from "./components/CreateUserDialog";
-import { Input } from "../../../../components/ui/input";
-import { useEffect, useState } from "react";
-import { Button } from "../../../../components/ui/button";
-import { toast } from "sonner";
+import { Invitations } from "./components/Invitations";
+import { InviteMemberDialog } from "./components/InviteMemberDialog";
+import { RemoveMemberDialog } from "./components/RemoveMemberDialog";
 
 // Types for our component
 export type Organization = {
@@ -65,6 +63,7 @@ function Organization({
   const { data } = authClient.useSession();
 
   const isOwner = members?.data.find(member => member.role === "owner" && member.userId === data?.user?.id);
+  const isAdmin = members?.data.find(member => member.role === "admin" && member.userId === data?.user?.id) || isOwner;
 
   const handleRefresh = () => {
     refetch();
@@ -139,7 +138,6 @@ function Organization({
                   ) : (
                     <CreateUserDialog organizationId={org.id} onSuccess={handleRefresh} />
                   )}
-                  <EditOrganizationDialog organization={org} onSuccess={handleRefresh} />
                 </>
               )}
             </div>
@@ -192,9 +190,9 @@ function Organization({
                           .toLocal()
                           .toLocaleString(DateTime.DATE_SHORT)}
                       </TableCell>
-                      {isOwner && (
+                      {isAdmin && (
                         <TableCell className="text-right">
-                          {member.role !== "owner" && (
+                          {(isOwner || member.role !== "owner") && (
                             <RemoveMemberDialog member={member} organizationId={org.id} onSuccess={handleRefresh} />
                           )}
                         </TableCell>

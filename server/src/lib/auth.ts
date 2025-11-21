@@ -159,11 +159,17 @@ export const auth = betterAuth({
         before: async userUpdate => {
           // Security: Prevent role field from being updated via regular update-user endpoint
           // Role changes should only go through the admin setRole endpoint
-          if (userUpdate && typeof userUpdate === "object" && "role" in userUpdate) {
-            // Remove role from the update data
-            const { role: _, ...dataWithoutRole } = userUpdate;
+          if (userUpdate && typeof userUpdate === "object") {
+            if ("role" in userUpdate) {
+              // Remove role from the update data
+              const { role: _, ...dataWithoutRole } = userUpdate;
+              return {
+                data: dataWithoutRole,
+              };
+            }
+            // Always return the data, even if role wasn't present
             return {
-              data: dataWithoutRole,
+              data: userUpdate,
             };
           }
         },
