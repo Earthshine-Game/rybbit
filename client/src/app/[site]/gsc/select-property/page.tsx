@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { authedFetch } from "@/api/utils";
 import { useQueryState, parseAsJson } from "nuqs";
 
-export default function SelectGSCPropertyPage() {
+function SelectGSCPropertyPageContent() {
   const params = useParams();
   const router = useRouter();
   const site = params.site as string;
@@ -112,5 +112,13 @@ export default function SelectGSCPropertyPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function SelectGSCPropertyPage() {
+  return (
+    <Suspense fallback={null}>
+      <SelectGSCPropertyPageContent />
+    </Suspense>
   );
 }

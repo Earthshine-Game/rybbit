@@ -10,18 +10,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { ArrowRight, Check } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { parseAsInteger, parseAsString, useQueryStates } from "nuqs";
+import React, { Suspense, useEffect, useState } from "react";
 import { addSite } from "../../../api/admin/sites";
-import { useQueryStates, parseAsInteger, parseAsString } from "nuqs";
+import { RybbitTextLogo } from "../../../components/RybbitLogo";
 import { useSetPageTitle } from "../../../hooks/useSetPageTitle";
 import { authClient } from "../../../lib/auth";
 import { IS_CLOUD } from "../../../lib/const";
 import { userStore } from "../../../lib/userStore";
 import { cn, isValidDomain, normalizeDomain } from "../../../lib/utils";
-import { RybbitTextLogo } from "../../../components/RybbitLogo";
 
 // Animation variants for step transitions
 const contentVariants = {
@@ -29,7 +28,7 @@ const contentVariants = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.3 } },
 };
 
-export default function AppSumoSignupPage() {
+function AppSumoSignupPageContent() {
   useSetPageTitle("Rybbit · AppSumo Signup");
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -432,5 +431,13 @@ export default function AppSumoSignupPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AppSumoSignupPage() {
+  return (
+    <Suspense fallback={null}>
+      <AppSumoSignupPageContent />
+    </Suspense>
   );
 }
