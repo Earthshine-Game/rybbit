@@ -13,17 +13,17 @@ import { motion } from "framer-motion";
 import { ArrowRight, Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { parseAsInteger, useQueryState } from "nuqs";
 import React, { useEffect, useState } from "react";
 import { addSite } from "../../api/admin/sites";
 import { RybbitLogo, RybbitTextLogo } from "../../components/RybbitLogo";
+import { SpinningGlobe } from "../../components/SpinningGlobe";
 import { useSetPageTitle } from "../../hooks/useSetPageTitle";
 import { authClient } from "../../lib/auth";
 import { useConfigs } from "../../lib/configs";
 import { IS_CLOUD } from "../../lib/const";
 import { userStore } from "../../lib/userStore";
 import { cn, isValidDomain, normalizeDomain } from "../../lib/utils";
-import { SpinningGlobe } from "../../components/SpinningGlobe";
-import { useQueryState, parseAsInteger } from "nuqs";
 
 // Animation variants for step transitions
 const contentVariants = {
