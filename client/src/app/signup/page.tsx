@@ -14,7 +14,7 @@ import { ArrowRight, Check } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { parseAsInteger, useQueryState } from "nuqs";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { addSite } from "../../api/admin/sites";
 import { RybbitLogo, RybbitTextLogo } from "../../components/RybbitLogo";
 import { SpinningGlobe } from "../../components/SpinningGlobe";
@@ -31,7 +31,7 @@ const contentVariants = {
   visible: { opacity: 1, x: 0, transition: { duration: 0.3 } },
 };
 
-export default function SignupPage() {
+function SignupPageContent() {
   const { configs, isLoading: isLoadingConfigs } = useConfigs();
   useSetPageTitle("Rybbit · Signup");
 
@@ -445,5 +445,13 @@ export default function SignupPage() {
         <SpinningGlobe />
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignupPageContent />
+    </Suspense>
   );
 }
