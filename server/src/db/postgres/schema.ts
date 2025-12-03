@@ -133,6 +133,7 @@ export const organization = pgTable(
     stripeCustomerId: text(),
     monthlyEventCount: integer().default(0),
     overMonthlyLimit: boolean().default(false),
+    planOverride: text(), // Plan name override (e.g., "pro1m", "standard500k")
   },
   table => [unique("organization_slug_unique").on(table.slug)]
 );
