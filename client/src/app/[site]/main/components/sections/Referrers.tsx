@@ -1,11 +1,12 @@
 "use client";
+import { Expand } from "lucide-react";
 import { useState } from "react";
+import { ChannelIcon } from "../../../../../components/Channel";
+import { Favicon } from "../../../../../components/Favicon";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../../../components/ui/basic-tabs";
+import { Button } from "../../../../../components/ui/button";
 import { Card, CardContent } from "../../../../../components/ui/card";
 import { StandardSection } from "../../../components/shared/StandardSection/StandardSection";
-import { Button } from "../../../../../components/ui/button";
-import { Expand } from "lucide-react";
-import { Favicon } from "../../../../../components/Favicon";
 
 type Tab = "referrers" | "channels" | "utm_source" | "utm_medium" | "utm_campaign" | "utm_term" | "utm_content";
 
@@ -62,7 +63,11 @@ export function Referrers() {
               getValue={e => e.value}
               getKey={e => e.value}
               // getLink={(e) => `https://${e.value}`}
-              getLabel={e => <div className="flex items-center">{e.value}</div>}
+              getLabel={e => (
+                <div className="flex items-center gap-2">
+                  <ChannelIcon channel={e.value} /> {e.value}
+                </div>
+              )}
               expanded={expanded}
               close={close}
             />

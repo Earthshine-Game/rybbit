@@ -14,10 +14,10 @@ import { DateTime } from "luxon";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { useGetUsers } from "../../../api/analytics/hooks/useGetUsers";
 import { UsersResponse } from "../../../api/analytics/endpoints";
+import { useGetUsers } from "../../../api/analytics/hooks/useGetUsers";
 import { Avatar } from "../../../components/Avatar";
-import { extractDomain, getChannelIcon, getDisplayName } from "../../../components/Channel";
+import { ChannelIcon, extractDomain, getDisplayName } from "../../../components/Channel";
 import { DisabledOverlay } from "../../../components/DisabledOverlay";
 import { ErrorState } from "../../../components/ErrorState";
 import { Favicon } from "../../../components/Favicon";
@@ -162,7 +162,7 @@ export default function UsersPage() {
 
         return (
           <div className="flex items-center gap-2">
-            {getChannelIcon(channel)}
+            <ChannelIcon channel={channel} />
             <span>{channel}</span>
           </div>
         );
