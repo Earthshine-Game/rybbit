@@ -162,6 +162,13 @@ export default function AppSumoSignupPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
+
+        // If license is already activated, treat it as success (user can proceed)
+        if (response.status === 409 && errorData.error === "License already activated") {
+          console.log("AppSumo license was already activated");
+          return true;
+        }
+
         throw new Error(errorData.error || "Failed to activate AppSumo license");
       }
 
