@@ -43,52 +43,20 @@ export function PreviousChart({
   data: APIResponse<GetOverviewBucketedResponse> | undefined;
   max: number;
 }) {
-  const { previousTime: time, selectedStat, bucket, showUsersSplit } = useStore();
+  const { previousTime: time, selectedStat, bucket } = useStore();
   const { resolvedTheme } = useTheme();
   const nivoTheme = useNivoTheme();
 
-  const showUserBreakdown = selectedStat === "users" && showUsersSplit;
-  const previousColors = showUserBreakdown
-    ? resolvedTheme === "dark"
-      ? ["hsl(var(--neutral-700) / 0.5)", "hsl(var(--neutral-700) / 0.5)"]
-      : ["hsl(var(--neutral-100) / 0.5)", "hsl(var(--neutral-100) / 0.5)"]
-    : resolvedTheme === "dark"
-      ? ["hsl(var(--neutral-700))"]
-      : ["hsl(var(--neutral-100))"];
-
-  const seriesConfig: { id: string; dataKey: keyof GetOverviewBucketedResponse[number]; color: string }[] =
-    showUserBreakdown
-      ? [
-          { id: "returning_users", dataKey: "returning_users", color: previousColors[1] },
-          { id: "new_users", dataKey: "new_users", color: previousColors[0] },
-        ]
-      : [{ id: selectedStat, dataKey: selectedStat, color: previousColors[0] }];
-
-  const chartData = seriesConfig.map(series => {
-    const points = data?.data
-      ?.map(e => {
-        const timestamp = DateTime.fromSQL(e.time).toUTC();
-        if (timestamp > DateTime.now()) {
-          return null;
-        }
-
-        return {
-          x: timestamp.toFormat("yyyy-MM-dd HH:mm:ss"),
-          y: (e as any)[series.dataKey] ?? 0,
-        };
-      })
-      ?.filter(point => point !== null);
-
-    return {
-      id: series.id,
-      data: points ?? [],
-    };
-  });
-
-  const colorMap = seriesConfig.reduce<Record<string, string>>((acc, series) => {
-    acc[series.id] = series.color;
-    return acc;
-  }, {});
+  const size = (data?.data.length ?? 0 / 2) + 1;
+  const formattedData = data?.data
+    ?.map(e => {
+      const timestamp = DateTime.fromSQL(e.time).toUTC();
+      return {
+        x: timestamp.toFormat("yyyy-MM-dd HH:mm:ss"),
+        y: e[selectedStat],
+      };
+    })
+    .slice(0, size);
 
   const min = getMin(time, bucket);
   const maxPastMinutes =
@@ -98,7 +66,12 @@ export function PreviousChart({
 
   return (
     <ResponsiveLine
-      data={chartData}
+      data={[
+        {
+          id: "1",
+          data: formattedData ?? [],
+        },
+      ]}
       theme={nivoTheme}
       margin={{ top: 10, right: 15, bottom: 30, left: 40 }}
       xScale={{
@@ -112,7 +85,7 @@ export function PreviousChart({
       yScale={{
         type: "linear",
         min: 0,
-        stacked: showUserBreakdown,
+        stacked: false,
         reverse: false,
         max: Math.max(max, 1),
       }}
@@ -155,9 +128,7 @@ export function PreviousChart({
       animate={false}
       // motionConfig="stiff"
       enableSlices={"x"}
-      colors={({ id }) =>
-        colorMap[id as string] ?? (resolvedTheme === "dark" ? "hsl(var(--neutral-700))" : "hsl(var(--neutral-100))")
-      }
+      colors={[resolvedTheme === "dark" ? "hsl(var(--neutral-700))" : "hsl(var(--neutral-100))"]}
     />
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 import { Card, CardContent, CardLoader } from "@/components/ui/card";
-import { User, Users } from "lucide-react";
 import { Tilt_Warp } from "next/font/google";
 import Link from "next/link";
 import { useGetOverview } from "../../../../../api/analytics/hooks/useGetOverview";
@@ -15,8 +14,6 @@ import { ExportButton } from "../ExportButton";
 import { Chart } from "./Chart";
 import { Overview } from "./Overview";
 import { PreviousChart } from "./PreviousChart";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../../components/ui/tooltip";
-import { Button } from "../../../../../components/ui/button";
 
 const SELECTED_STAT_MAP = {
   pageviews: "Pageviews",
@@ -36,8 +33,7 @@ export function MainSection() {
   const { isWhiteLabel } = useWhiteLabel();
   const session = authClient.useSession();
 
-  const { selectedStat, time, site, bucket, showUsersSplit, setShowUsersSplit } = useStore();
-  const showUserBreakdown = selectedStat === "users" && showUsersSplit;
+  const { selectedStat, time, site, bucket } = useStore();
 
   // Current period data
   const { data, isFetching, error } = useGetOverviewBucketed({
@@ -62,18 +58,10 @@ export function MainSection() {
     periodTime: "previous",
   });
 
-  const activeKeys = showUserBreakdown ? (["new_users", "returning_users"] as const) : ([selectedStat] as const);
-
-  const getMaxValue = (dataset?: { data?: Record<string, number | string>[] }) =>
-    Math.max(
-      ...(dataset?.data?.map(d =>
-        showUserBreakdown
-          ? Number(d?.["new_users"] ?? 0) + Number(d?.["returning_users"] ?? 0)
-          : Math.max(...activeKeys.map(key => Number(d?.[key] ?? 0)))
-      ) ?? [0])
-    );
-
-  const maxOfDataAndPreviousData = Math.max(getMaxValue(data), getMaxValue(previousData));
+  const maxOfDataAndPreviousData = Math.max(
+    Math.max(...(data?.data?.map((d: any) => d[selectedStat]) ?? [])),
+    Math.max(...(previousData?.data?.map((d: any) => d[selectedStat]) ?? []))
+  );
 
   return (
     <>
@@ -83,7 +71,7 @@ export function MainSection() {
         </CardContent>
         {(isOverviewFetching || isOverviewFetchingPrevious) && <CardLoader />}
       </Card>
-      <Card className="overflow-visible">
+      <Card>
         {(isFetching || isPreviousFetching) && <CardLoader />}
         <CardContent className="p-2 md:p-4 py-3 w-full">
           <div className="flex items-center justify-between px-2 md:px-0">
@@ -100,20 +88,6 @@ export function MainSection() {
             </div>
             <span className="text-sm text-neutral-700 dark:text-neutral-200">{SELECTED_STAT_MAP[selectedStat]}</span>
             <div className="flex items-center">
-              {selectedStat === "users" && (
-                <div className="flex items-center text-xs text-muted-foreground">
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Button variant="ghost" size="smIcon" onClick={() => setShowUsersSplit(!showUsersSplit)}>
-                        {showUsersSplit ? <Users /> : <User />}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{showUsersSplit ? "Hide new vs returning users" : "Show new vs returning users"}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              )}
               <div className="hidden md:block">
                 <ExportButton />
               </div>
@@ -122,7 +96,6 @@ export function MainSection() {
               </div>
             </div>
           </div>
-
           <div className="h-[200px] md:h-[290px] relative">
             <div className="absolute top-0 left-0 w-full h-full">
               <PreviousChart data={previousData} max={maxOfDataAndPreviousData} />
