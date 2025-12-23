@@ -35,14 +35,14 @@ export function SessionsList({
 }: SessionsListProps) {
   if (sessions.length === 0 && !isLoading) {
     return (
-      <div className="overflow-auto space-y-3">
+      <div className="space-y-3">
         <NothingFound icon={<Rewind className="w-10 h-10" />} title={"No sessions found"} description={emptyMessage} />
       </div>
     );
   }
 
   return (
-    <div className="overflow-auto space-y-3">
+    <div className="space-y-3">
       {/* Pagination controls */}
       <div className="flex items-center justify-between gap-2">
         {setIdentifiedOnly && (
