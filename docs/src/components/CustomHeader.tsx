@@ -21,7 +21,7 @@ export function CustomHeader() {
             <Image
               src="/rybbit-text.svg"
               alt="Rybbit"
-              width={100}
+              width={80}
               height={0}
               style={{ height: "auto" }}
               className="dark:invert-0 invert"

@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart, Building2, LogOut, Settings, ShieldUser, User } from "lucide-react";
+import { BarChart, Building2, HomeIcon, LogOut, Settings, ShieldUser, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useState } from "react";
@@ -48,14 +48,16 @@ function AppSidebarContent() {
       onMouseLeave={() => setIsExpanded(false)}
     >
       <div className="flex flex-col items-start gap-2">
-        <Link href="/" className="mb-3 mt-1 ml-0.5 flex items-center justify-center">
+        {/* <Link href="/" className="mb-3 mt-1 ml-0.5 flex items-center justify-center">
           <RybbitLogo width={24} height={18} />
-        </Link>
+          <HomeIcon className="w-5 h-5" />
+        </Link> */}
         <SidebarLink
           href="/"
-          icon={<BarChart className="w-5 h-5" />}
-          label="Analytics"
-          active={pathname === "/" || !isNaN(Number(pathname.split("/")[1]))}
+          icon={<HomeIcon className="w-5 h-5" />}
+          label="Home"
+          // active={!isNaN(Number(pathname.split("/")[1]))}
+          active={false}
           expanded={isExpanded}
         />
         {/* <SidebarLink
