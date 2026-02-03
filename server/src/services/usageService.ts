@@ -151,7 +151,7 @@ class UsageService {
             site_id,
             COUNT(*) as count
           FROM events
-          WHERE type IN ('pageview', 'custom_event', 'performance')
+          WHERE type IN ('pageview', 'custom_event', 'performance', 'outbound', 'button_click', 'copy', 'form_submit', 'input_change')
             AND timestamp >= toDate({periodStart:String})
           GROUP BY site_id
         `,
