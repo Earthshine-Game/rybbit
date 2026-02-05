@@ -65,7 +65,7 @@ services:
       start_period: 10s
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
   backend:
     image: ghcr.io/rybbit-io/rybbit-backend:${IMAGE_TAG:-latest}
@@ -74,7 +74,7 @@ services:
       context: .
       dockerfile: server/Dockerfile
     ports:
-      - "${HOST_BACKEND_PORT:-127.0.0.1:3001:3001}"
+      - "${HOST_BACKEND_PORT:-127.0.0.1:8080:3001}"
     environment:
       - NODE_ENV=production
       - CLICKHOUSE_HOST=http://clickhouse:8123
@@ -113,7 +113,7 @@ services:
         NEXT_PUBLIC_BACKEND_URL: ${BASE_URL}
         NEXT_PUBLIC_DISABLE_SIGNUP: ${DISABLE_SIGNUP}
     ports:
-      - "${HOST_CLIENT_PORT:-127.0.0.1:3002:3002}"
+      - "${HOST_CLIENT_PORT:-127.0.0.1:8081:3002}"
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_BACKEND_URL=${BASE_URL}

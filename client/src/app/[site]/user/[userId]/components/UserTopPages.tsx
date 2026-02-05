@@ -10,6 +10,10 @@ type Tab = "pages" | "events";
 
 export function UserTopPages({ userId }: { userId: string }) {
   const [tab, setTab] = useState<Tab>("pages");
+  const [expanded, setExpanded] = useState(false);
+  const close = () => {
+    setExpanded(false);
+  };
 
   const { data: siteMetadata } = useGetSite();
 
@@ -33,7 +37,7 @@ export function UserTopPages({ userId }: { userId: string }) {
               getKey={e => e.value}
               getLabel={e => truncateString(e.value, 50) || "Other"}
               getLink={e => `https://${siteMetadata?.domain}${e.value}`}
-              expanded={false}
+              expanded={expanded}
               close={close}
               customFilters={[{ parameter: "user_id", value: [userId], type: "equals" }]}
               customTime={{
@@ -50,7 +54,7 @@ export function UserTopPages({ userId }: { userId: string }) {
               getKey={e => e.value}
               getLabel={e => truncateString(e.value, 50) || "Other"}
               getLink={e => `https://${siteMetadata?.domain}${e.value}`}
-              expanded={false}
+              expanded={expanded}
               close={close}
               customFilters={[{ parameter: "user_id", value: [userId], type: "equals" }]}
               customTime={{

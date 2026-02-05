@@ -21,22 +21,22 @@ export interface SubscriptionData {
   isOverride?: boolean;
 }
 
-export function useStripeSubscription(): UseQueryResult<SubscriptionData | undefined, Error> {
+export function useStripeSubscription(): UseQueryResult<SubscriptionData | null, Error> {
   const { data: activeOrg } = authClient.useActiveOrganization();
 
   const fetchSubscription = async () => {
     if (!activeOrg || !IS_CLOUD) {
-      return undefined;
+      return null;
     }
 
     return authedFetch<SubscriptionData>(`/stripe/subscription?organizationId=${activeOrg.id}`);
   };
 
-  return useQuery<SubscriptionData | undefined>({
+  return useQuery<SubscriptionData | null>({
     queryKey: ["stripe-subscription", activeOrg?.id],
     queryFn: fetchSubscription,
     staleTime: 5 * 60 * 1000,
     retry: false,
-    enabled: !!activeOrg,
+    enabled: !!activeOrg && IS_CLOUD,
   });
 }
