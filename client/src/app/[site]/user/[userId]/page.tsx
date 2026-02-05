@@ -103,12 +103,14 @@ export default function UserPage() {
               </>
             )}
           </div>
-          {data?.ip && (
-            <Badge variant="outline" className="mt-3 text-xs">
+        </div>
+        {data?.ip && (
+          <div>
+            <Badge variant="outline" className="text-xs whitespace-nowrap">
               IP: {data.ip}
             </Badge>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Main two-column layout */}

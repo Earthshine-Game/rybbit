@@ -1,9 +1,11 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { addFilter, getTimezone } from "@/lib/store";
+import { FilterParameter } from "@rybbit/shared";
 import { ArrowRight, ChevronDown, ChevronRight, Video } from "lucide-react";
 import { DateTime } from "luxon";
-import { FilterParameter } from "@rybbit/shared";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { memo, useCallback, useState } from "react";
 import { GetSessionsResponse } from "../../api/analytics/endpoints";
 import { formatShortDuration, hour12, userLocale } from "../../lib/dateTimeUtils";
@@ -19,8 +21,8 @@ import {
   OperatingSystemTooltipIcon,
 } from "../TooltipIcons/TooltipIcons";
 import { Badge } from "../ui/badge";
-import { SessionDetails } from "./SessionDetails";
 import { ReplayDrawer } from "./ReplayDrawer";
+import { SessionDetails } from "./SessionDetails";
 
 interface SessionCardProps {
   session: GetSessionsResponse[number];
@@ -30,6 +32,7 @@ interface SessionCardProps {
 }
 
 export function SessionCard({ session, onClick, userId, expandedByDefault }: SessionCardProps) {
+  const { site } = useParams();
   const [expanded, setExpanded] = useState(expandedByDefault || false);
   const [replayDrawerOpen, setReplayDrawerOpen] = useState(false);
   // Calculate session duration in minutes
@@ -37,6 +40,7 @@ export function SessionCard({ session, onClick, userId, expandedByDefault }: Ses
   const end = DateTime.fromSQL(session.session_end);
   const totalSeconds = Math.floor(end.diff(start).milliseconds / 1000);
   const duration = formatShortDuration(totalSeconds);
+  const isIdentified = !!session.identified_user_id;
 
   const handleCardClick = () => {
     if (onClick) {
@@ -158,17 +162,23 @@ export function SessionCard({ session, onClick, userId, expandedByDefault }: Ses
         {/* Desktop layout - single row */}
         <div className="hidden md:flex items-center gap-2">
           {!userId && (
-            <div className="flex items-center gap-2">
+            <Link
+              href={`/${site}/user/${encodeURIComponent(
+                isIdentified ? session.identified_user_id : session.user_id
+              )}`}
+              onClick={e => e.stopPropagation()}
+              className="flex items-center gap-2"
+            >
               <Avatar
                 size={24}
                 id={session.user_id}
                 lastActiveTime={DateTime.fromSQL(session.session_end, { zone: "utc" })}
               />
-              <span className="text-xs text-neutral-600 dark:text-neutral-200 w-24 truncate">
+              <span className="text-xs text-neutral-600 dark:text-neutral-200 w-24 truncate hover:underline">
                 {getUserDisplayName(session)}
               </span>
               {!!session.identified_user_id && <IdentifiedBadge traits={session.traits} />}
-            </div>
+            </Link>
           )}
 
           {/* Icons section */}
