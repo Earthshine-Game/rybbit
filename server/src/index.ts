@@ -236,7 +236,8 @@ async function analyticsRoutes(fastify: FastifyInstance) {
   fastify.get("/sites/:siteId/error-bucketed", publicSite, getErrorBucketed);
   fastify.get("/sites/:siteId/retention", publicSite, getRetention);
   fastify.get("/sites/:siteId/has-data", publicSite, getSiteHasData);
-  fastify.get("/sites/:siteId/is-public", publicSite, getSiteIsPublic);
+  // is-public endpoint should be truly public (no auth required) since we're checking if site is public
+  fastify.get("/sites/:siteId/is-public", { preHandler: [resolveSiteId] as any }, getSiteIsPublic);
   fastify.get("/sites/:siteId/sessions", publicSite, getSessions);
   fastify.get("/sites/:siteId/sessions/:sessionId", publicSite, getSession);
   fastify.get("/sites/:siteId/events", publicSite, getEvents);

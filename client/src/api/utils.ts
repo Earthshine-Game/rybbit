@@ -92,15 +92,48 @@ export async function authedFetch<T>(
       url: fullUrl,
       params: processedParams,
       withCredentials: true,
+      timeout: config.timeout ?? 30000, // 30 second default timeout
       ...config,
       headers,
     });
 
     return response.data;
   } catch (error: any) {
-    if (error?.response?.data?.error) {
+    // Handle network errors (no response from server)
+    if (!error.response) {
+      if (error.code === "ECONNREFUSED" || error.message?.includes("Network Error")) {
+        const portHint = BACKEND_URL.includes(":3001") 
+          ? "\n\nTip: If running backend in Docker, it may be on port 8080. Set NEXT_PUBLIC_BACKEND_URL=http://localhost:8080"
+          : "";
+        throw new Error(
+          `Unable to connect to server at ${BACKEND_URL}.${portHint}\n\nPlease ensure:\n- The backend server is running\n- The correct port is configured (check docker-compose.yml)\n- NEXT_PUBLIC_BACKEND_URL environment variable is set correctly`
+        );
+      }
+      if (error.code === "ERR_NETWORK") {
+        const portHint = fullUrl.includes(":3001")
+          ? "\n\nTip: If running backend in Docker, try http://localhost:8080/api instead"
+          : "";
+        throw new Error(
+          `Network error: Unable to reach ${fullUrl}.${portHint}\n\nCheck:\n- Your network connection\n- The server is running\n- CORS is properly configured\n- The correct port is being used`
+        );
+      }
+      if (error.message) {
+        throw new Error(`Network error: ${error.message}`);
+      }
+      throw new Error("Network error: Unable to connect to the server");
+    }
+
+    // Handle HTTP errors (server responded with error status)
+    if (error.response?.data?.error) {
       throw new Error(error.response.data.error);
     }
+
+    // Handle other HTTP errors
+    if (error.response?.status) {
+      const statusText = error.response?.statusText || "Unknown error";
+      throw new Error(`HTTP ${error.response.status}: ${statusText}`);
+    }
+
     throw error;
   }
 }
