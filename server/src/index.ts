@@ -143,7 +143,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const server = Fastify({
-  // disableRequestLogging: true,
+  disableRequestLogging: true,
   logger: {
     // level: process.env.LOG_LEVEL || (process.env.NODE_ENV === "development" ? "debug" : "info"),
     level: "debug",
