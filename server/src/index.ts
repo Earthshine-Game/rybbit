@@ -47,6 +47,9 @@ import {
   getSiteEventCount,
   getUserInfo,
   getUserSessionCount,
+  getUserTraitKeys,
+  getUserTraitValueUsers,
+  getUserTraitValues,
   getUsers,
   updateGoal,
 } from "./api/analytics/index.js";
@@ -247,6 +250,9 @@ async function analyticsRoutes(fastify: FastifyInstance) {
 
   fastify.get("/sites/:siteId/users/session-count", publicSite, getUserSessionCount);
   fastify.get("/sites/:siteId/users/:userId", publicSite, getUserInfo);
+  fastify.get("/sites/:siteId/user-traits/keys", publicSite, getUserTraitKeys);
+  fastify.get("/sites/:siteId/user-traits/values", publicSite, getUserTraitValues);
+  fastify.get("/sites/:siteId/user-traits/users", publicSite, getUserTraitValueUsers);
   fastify.get("/sites/:siteId/session-locations", publicSite, getSessionLocations);
   fastify.get("/sites/:siteId/funnels", publicSite, getFunnels);
   fastify.get("/sites/:siteId/journeys", publicSite, getJourneys);

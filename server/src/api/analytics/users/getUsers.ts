@@ -1,8 +1,10 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { clickhouse } from "../../db/clickhouse/clickhouse.js";
-import { enrichWithTraits, getTimeStatement, processResults } from "./utils/utils.js";
+import { sql, SQL } from "drizzle-orm";
+import { clickhouse } from "../../../db/clickhouse/clickhouse.js";
+import { db } from "../../../db/postgres/postgres.js";
+import { enrichWithTraits, getTimeStatement, processResults } from "../utils/utils.js";
 import { FilterParams } from "@rybbit/shared";
-import { getFilterStatement } from "./utils/getFilterStatement.js";
+import { getFilterStatement } from "../utils/getFilterStatement.js";
 
 export type GetUsersResponse = {
   user_id: string; // Device fingerprint
@@ -33,6 +35,8 @@ export interface GetUsersRequest {
     sort_by?: string;
     sort_order?: string;
     identified_only?: string;
+    search?: string;
+    search_field?: string;
   }>;
 }
 
@@ -44,9 +48,44 @@ export async function getUsers(req: FastifyRequest<GetUsersRequest>, res: Fastif
     sort_by: sortBy = "last_seen",
     sort_order: sortOrder = "desc",
     identified_only: identifiedOnly = "false",
+    search,
+    search_field: searchField = "username",
   } = req.query;
   const site = req.params.siteId;
-  const filterIdentified = identifiedOnly === "true";
+  let filterIdentified = identifiedOnly === "true";
+
+  // Search for matching user IDs in Postgres when search is provided
+  const MAX_MATCHING_USER_IDS = 10000;
+  let matchingUserIds: string[] | null = null;
+  if (search && search.trim()) {
+    const searchTerm = `%${search.trim()}%`;
+    const siteId = Number(site);
+
+    const fieldConditions: Record<string, SQL> = {
+      username: sql`traits->>'username' ILIKE ${searchTerm}`,
+      name: sql`traits->>'name' ILIKE ${searchTerm}`,
+      email: sql`traits->>'email' ILIKE ${searchTerm}`,
+      user_id: sql`user_id ILIKE ${searchTerm}`,
+    };
+    const condition = fieldConditions[searchField] ?? fieldConditions.username;
+
+    const searchResult = await db.execute<{ user_id: string }>(sql`
+      SELECT user_id FROM user_profiles
+      WHERE site_id = ${siteId} AND ${condition}
+      LIMIT ${MAX_MATCHING_USER_IDS}
+    `);
+
+    matchingUserIds = searchResult.map((r) => r.user_id);
+    if (matchingUserIds.length === 0) {
+      return res.send({
+        data: [],
+        totalCount: 0,
+        page: parseInt(page, 10),
+        pageSize: parseInt(pageSize, 10),
+      });
+    }
+    filterIdentified = true;
+  }
 
   const pageNum = parseInt(page, 10);
   const pageSizeNum = parseInt(pageSize, 10);
@@ -91,6 +130,7 @@ WITH AggregatedUsers AS (
     WHERE
         site_id = {siteId:Int32}
         ${timeStatement}
+        ${matchingUserIds ? "AND events.identified_user_id IN ({matchingUserIds:Array(String)})" : ""}
     GROUP BY
         effective_user_id
 )
@@ -115,6 +155,7 @@ FROM (
         AND identified_user_id != ''
         ${timeStatement}
         ${filterStatement}
+        ${matchingUserIds ? "AND events.identified_user_id IN ({matchingUserIds:Array(String)})" : ""}
 )
 `
     : `
@@ -125,6 +166,7 @@ WHERE
     site_id = {siteId:Int32}
     ${filterStatement}
     ${timeStatement}
+    ${matchingUserIds ? "AND events.identified_user_id IN ({matchingUserIds:Array(String)})" : ""}
   `;
 
   try {
@@ -137,6 +179,7 @@ WHERE
           siteId: Number(site),
           limit: pageSizeNum,
           offset,
+          ...(matchingUserIds ? { matchingUserIds } : {}),
         },
       }),
       clickhouse.query({
@@ -144,6 +187,7 @@ WHERE
         format: "JSONEachRow",
         query_params: {
           siteId: Number(site),
+          ...(matchingUserIds ? { matchingUserIds } : {}),
         },
       }),
     ]);

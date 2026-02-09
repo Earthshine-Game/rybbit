@@ -142,6 +142,19 @@ export type {
   SessionReplaysParams,
 } from "./sessionReplay";
 
+// User Traits endpoints
+export { fetchUserTraitKeys, fetchUserTraitValues, fetchUserTraitValueUsers } from "./userTraits";
+export type {
+  TraitKey,
+  TraitKeysResponse,
+  TraitValue,
+  TraitValuesResponse,
+  TraitValuesParams,
+  TraitValueUser,
+  TraitValueUsersResponse,
+  TraitValueUsersParams,
+} from "./userTraits";
+
 // Export endpoints
 export { exportPdfReport } from "./export";
 export type { ExportPdfParams } from "./export";

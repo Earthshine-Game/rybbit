@@ -1,9 +1,9 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { eq, and } from "drizzle-orm";
-import { clickhouse } from "../../db/clickhouse/clickhouse.js";
-import { db } from "../../db/postgres/postgres.js";
-import { userProfiles, userAliases } from "../../db/postgres/schema.js";
-import { processResults } from "./utils/utils.js";
+import { clickhouse } from "../../../db/clickhouse/clickhouse.js";
+import { db } from "../../../db/postgres/postgres.js";
+import { userProfiles, userAliases } from "../../../db/postgres/schema.js";
+import { processResults } from "../utils/utils.js";
 
 interface UserPageviewData {
   sessions: number;

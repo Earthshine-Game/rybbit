@@ -53,7 +53,7 @@ const sponsors: Sponsor[] = [
   {
     name: "Onyx",
     logo: "/sponsors/onyx.jpeg",
-    url: "https://onyx.com",
+    url: "https://onyx.app",
     amount: 500,
   },
   {
