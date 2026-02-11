@@ -56,7 +56,7 @@ export default function AffiliatePage() {
             tilt_wrap.className
           )}
         >
-          50%/ Affiliate Program
+          50% Affiliate Program
         </h1>
         <h2 className="relative z-10 text-base md:text-xl pt-4 md:pt-6 px-4 tracking-tight max-w-4xl text-center text-neutral-600 dark:text-neutral-300 font-light">
           Earn 50% recurring commission for 12 months by referring customers to
