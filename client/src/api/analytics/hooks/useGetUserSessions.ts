@@ -55,6 +55,7 @@ export function useGetSessions({
         minDuration,
       });
     },
+    enabled: !!site,
     staleTime: Infinity,
   });
 }
@@ -98,6 +99,7 @@ export function useGetSessionsInfinite({
       }
       return undefined;
     },
+    enabled: !!site,
     staleTime: Infinity,
     refetchInterval,
   });

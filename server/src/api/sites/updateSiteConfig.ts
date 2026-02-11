@@ -14,9 +14,21 @@ const updateSiteConfigSchema = z.object({
   blockBots: z.boolean().optional(),
   domain: z
     .string()
-    .regex(
-      /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/,
-      "Invalid domain format. Must be a valid domain like example.com or sub.example.com"
+    .refine(
+      (val) => {
+        // Allow localhost with optional port for local development
+        if (/^localhost(:\d+)?$/.test(val)) {
+          return true;
+        }
+        // Allow standard domain format (with TLD)
+        if (/^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/.test(val)) {
+          return true;
+        }
+        return false;
+      },
+      {
+        message: "Invalid domain format. Must be a valid domain like example.com, sub.example.com, or localhost:port",
+      }
     )
     .optional(),
   excludedIPs: z.array(z.string().trim().min(1)).max(100).optional(),

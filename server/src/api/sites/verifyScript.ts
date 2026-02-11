@@ -36,7 +36,15 @@ export async function verifyScript(
     }
 
     const domain = site.domain;
-    const url = domain.startsWith("http") ? domain : `https://${domain}`;
+    // Use HTTP for localhost, HTTPS for other domains
+    let url: string;
+    if (domain.startsWith("http")) {
+      url = domain;
+    } else if (domain.startsWith("localhost")) {
+      url = `http://${domain}`;
+    } else {
+      url = `https://${domain}`;
+    }
 
     const issues: string[] = [];
     let scriptTagFound = false;

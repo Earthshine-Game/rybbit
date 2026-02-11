@@ -6,6 +6,14 @@
 
   // utils.ts
   function patternToRegex(pattern) {
+    const REGEX_PREFIX = "re:";
+    if (pattern.startsWith(REGEX_PREFIX)) {
+      const rawRegex = pattern.slice(REGEX_PREFIX.length);
+      if (!rawRegex) {
+        throw new Error("Empty regex pattern");
+      }
+      return new RegExp(rawRegex);
+    }
     const DOUBLE_WILDCARD_TOKEN = "__DOUBLE_ASTERISK_TOKEN__";
     const SINGLE_WILDCARD_TOKEN = "__SINGLE_ASTERISK_TOKEN__";
     let tokenized = pattern.replace(/\*\*/g, DOUBLE_WILDCARD_TOKEN).replace(/\*/g, SINGLE_WILDCARD_TOKEN);

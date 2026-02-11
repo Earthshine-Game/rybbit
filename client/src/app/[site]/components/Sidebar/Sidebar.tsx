@@ -17,7 +17,7 @@ import {
   Video,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useGetSite } from "../../../../api/admin/hooks/useSites";
 import { Sidebar as SidebarComponents } from "../../../../components/sidebar/Sidebar";
 import { SiteSettings } from "../../../../components/SiteSettings/SiteSettings";
@@ -32,8 +32,13 @@ function SidebarContent() {
   const session = authClient.useSession();
   const pathname = usePathname();
   const embed = useEmbedablePage();
+  const [isMounted, setIsMounted] = useState(false);
 
   const { data: site } = useGetSite(Number(pathname.split("/")[1]));
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Check which tab is active based on the current path
   const getTabPath = (tabName: string) => {
@@ -115,7 +120,7 @@ function SidebarContent() {
         </div>
         <SidebarComponents.SectionHeader>Product Analytics</SidebarComponents.SectionHeader>
         <div className="hidden md:block">
-          {!subscription?.planName?.startsWith("appsumo") && !isSubscriptionLoading && (
+          {isMounted && !subscription?.planName?.startsWith("appsumo") && !isSubscriptionLoading && (
             <SidebarComponents.Item
               label="Replay"
               active={isActiveTab("replay")}
@@ -173,7 +178,7 @@ function SidebarContent() {
           href={getTabPath("reports")}
           icon={<ChartBarDecreasing className="w-4 h-4" />}
           /> */}
-        {session.data && !embed && (
+        {isMounted && session.data && !embed && (
           <>
             <SidebarComponents.SectionHeader>Settings</SidebarComponents.SectionHeader>
             <SiteSettings

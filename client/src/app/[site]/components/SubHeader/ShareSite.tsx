@@ -9,7 +9,6 @@ import {
 import { Button } from "../../../../components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "../../../../components/ui/dropdown-menu";
 import { Input } from "../../../../components/ui/input";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../../../../components/ui/tooltip";
 
 export function ShareSite() {
   const { site } = useParams();
@@ -19,16 +18,11 @@ export function ShareSite() {
 
   return (
     <DropdownMenu>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DropdownMenuTrigger asChild>
-            <Button variant="secondary" size="icon" onClick={() => {}} className="h-8 w-8">
-              <Share className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-        </TooltipTrigger>
-        <TooltipContent>Share a private link</TooltipContent>
-      </Tooltip>
+      <DropdownMenuTrigger asChild>
+        <Button variant="secondary" size="icon" className="h-8 w-8" title="Share a private link">
+          <Share className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="flex flex-col p-3 max-w-[400px]">
         <span className="text-sm font-medium pb-2">Share this dashboard</span>
         {!isLoadingPrivateLink && !privateLink?.privateLinkKey && (
