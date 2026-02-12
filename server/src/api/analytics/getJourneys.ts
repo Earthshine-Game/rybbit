@@ -12,16 +12,35 @@ export const getJourneys = async (
       limit?: string;
       stepFilters?: string;
       includeEvents?: string;
+      excludeEventNames?: string;
     }>;
   }>,
   reply: FastifyReply
 ) => {
   try {
     const { siteId } = request.params;
-    const { steps = "3", limit = "100", filters, stepFilters, includeEvents = "true" } = request.query;
+    const { steps = "3", limit = "100", filters, stepFilters, includeEvents = "true", excludeEventNames } = request.query;
     
     // Parse includeEvents parameter (default to true to include events)
     const includeEventsInJourney = includeEvents === "true" || includeEvents === "1";
+    
+    // Parse excludeEventNames parameter (comma-separated list or JSON array)
+    let excludedEventNames: string[] = [];
+    if (excludeEventNames) {
+      try {
+        // Try parsing as JSON array first
+        const parsed = JSON.parse(excludeEventNames);
+        if (Array.isArray(parsed)) {
+          excludedEventNames = parsed.map((name: any) => String(name).trim()).filter(Boolean);
+        } else {
+          // If not an array, treat as comma-separated string
+          excludedEventNames = excludeEventNames.split(",").map((name: string) => name.trim()).filter(Boolean);
+        }
+      } catch {
+        // If JSON parsing fails, treat as comma-separated string
+        excludedEventNames = excludeEventNames.split(",").map((name: string) => name.trim()).filter(Boolean);
+      }
+    }
 
     const maxSteps = parseInt(steps, 10);
     const journeyLimit = parseInt(limit, 10);
@@ -97,6 +116,9 @@ export const getJourneys = async (
                 type = 'pageview'
                 ${includeEventsInJourney ? "OR type IN ('custom_event', 'button_click', 'copy', 'form_submit', 'input_change', 'outbound')" : ""}
               )
+              ${excludedEventNames.length > 0 
+                ? `AND NOT (type IN ('custom_event', 'button_click', 'copy', 'form_submit', 'input_change', 'outbound') AND event_name IN (${excludedEventNames.map(name => `'${name.replace(/'/g, "''")}'`).join(", ")}))` 
+                : ""}
             ORDER BY session_id, timestamp
           )
           GROUP BY session_id

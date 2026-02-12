@@ -1,12 +1,14 @@
 "use client";
 
 import { useJourneys } from "@/api/analytics/hooks/useGetJourneys";
+import { useGetEventNames } from "@/api/analytics/hooks/events/useGetEventNames";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { InputWithSuggestions, SuggestionOption } from "@/components/ui/input-with-suggestions";
+import { MultiSelect, MultiSelectOption } from "@/components/ui/multi-select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { AlertCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useGetSite } from "../../../api/admin/hooks/useSites";
 import { useMetric } from "../../../api/analytics/hooks/useGetMetric";
 import { DisabledOverlay } from "../../../components/DisabledOverlay";
@@ -24,6 +26,7 @@ export default function JourneysPage() {
   const [maxJourneys, setMaxJourneys] = useState<number>(50);
   const [stepFilters, setStepFilters] = useState<Record<number, string>>({});
   const [includeEvents, setIncludeEvents] = useState<boolean>(true);
+  const [excludeEventNames, setExcludeEventNames] = useState<string[]>([]);
 
   const { data: siteMetadata } = useGetSite();
   const { time } = useStore();
@@ -41,6 +44,19 @@ export default function JourneysPage() {
       label: item.value,
     })) ?? [];
 
+  // Fetch available event names
+  const { data: eventNamesData } = useGetEventNames();
+
+  // Convert event names to MultiSelect options
+  const eventNameOptions: MultiSelectOption[] = useMemo(() => {
+    return (
+      eventNamesData?.map(event => ({
+        value: event.eventName,
+        label: `${event.eventName} (${event.count.toLocaleString()})`,
+      })) ?? []
+    );
+  }, [eventNamesData]);
+
   const { data, isLoading, error } = useJourneys({
     siteId: siteMetadata?.siteId,
     steps,
@@ -49,6 +65,7 @@ export default function JourneysPage() {
     limit: maxJourneys,
     stepFilters,
     includeEvents,
+    excludeEventNames: excludeEventNames.length > 0 ? excludeEventNames : undefined,
   });
 
   return (
@@ -91,6 +108,29 @@ export default function JourneysPage() {
             />
           </div>
         </div>
+        {includeEvents && (
+          <div className="flex items-center gap-3 my-2">
+            <label htmlFor="exclude-events" className="text-sm text-neutral-600 dark:text-neutral-300 whitespace-nowrap">
+              Exclude Event Names:
+            </label>
+            <div className="w-full max-w-md">
+              <MultiSelect
+                options={eventNameOptions}
+                value={excludeEventNames}
+                onValueChange={setExcludeEventNames}
+                placeholder="Select events to exclude..."
+                searchPlaceholder="Search events..."
+                emptyText="No events found."
+                className="min-h-9"
+              />
+            </div>
+            {excludeEventNames.length > 0 && (
+              <span className="text-xs text-neutral-500">
+                {excludeEventNames.length} event{excludeEventNames.length !== 1 ? "s" : ""} excluded
+              </span>
+            )}
+          </div>
+        )}
 
         {siteMetadata?.domain ? (
           <div className="relative">

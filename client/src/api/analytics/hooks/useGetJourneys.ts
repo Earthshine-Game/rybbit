@@ -13,15 +13,16 @@ export interface JourneyParams {
   limit?: number;
   stepFilters?: Record<number, string>;
   includeEvents?: boolean;
+  excludeEventNames?: string[];
 }
 
-export const useJourneys = ({ siteId, steps = 3, time, limit = 100, stepFilters, includeEvents = true }: JourneyParams) => {
+export const useJourneys = ({ siteId, steps = 3, time, limit = 100, stepFilters, includeEvents = true, excludeEventNames }: JourneyParams) => {
   const { timezone } = useStore();
   const filteredFilters = getFilteredFilters(JOURNEY_PAGE_FILTERS);
   const params = buildApiParams(time, { filters: filteredFilters });
 
   return useQuery<JourneysResponse>({
-    queryKey: ["journeys", siteId, steps, time, limit, filteredFilters, stepFilters, includeEvents, timezone],
+    queryKey: ["journeys", siteId, steps, time, limit, filteredFilters, stepFilters, includeEvents, excludeEventNames, timezone],
     queryFn: () =>
       fetchJourneys(siteId!, {
         ...params,
@@ -29,6 +30,7 @@ export const useJourneys = ({ siteId, steps = 3, time, limit = 100, stepFilters,
         limit,
         stepFilters,
         includeEvents,
+        excludeEventNames,
       }),
     enabled: !!siteId,
     placeholderData: previousData => previousData,
