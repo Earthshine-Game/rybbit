@@ -327,9 +327,10 @@ export function SankeyDiagram({ journeys, steps, maxJourneys, domain }: SankeyDi
       const eventPart = name.replace(/^event:/, "");
       const parts = eventPart.split(":");
       if (parts.length > 1) {
-        // Format: "event:button_click:submit" -> "button_click: submit"
-        return `${parts[0]}: ${parts.slice(1).join(":")}`;
+        // If there's an event_name, skip the event type and show just the event_name
+        return parts.slice(1).join(":");
       }
+      // If no event_name, show the event type
       return eventPart;
     };
 
