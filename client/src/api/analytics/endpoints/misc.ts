@@ -1,5 +1,6 @@
 import { authedFetch } from "../../utils";
 import { CommonApiParams, PaginationParams, toQueryParams } from "./types";
+import { GetSessionsResponse } from "./sessions";
 
 // Retention types
 export interface ProcessedRetentionData {
@@ -126,6 +127,26 @@ export interface OrgEventCountParams {
   timeZone?: string;
 }
 
+// Journey transition sessions types
+export interface JourneyTransitionSessionsParams extends CommonApiParams, PaginationParams {
+  source: string;
+  target: string;
+  sourceStep?: number;
+  targetStep?: number;
+  includeEvents?: boolean;
+  excludeEventNames?: string[];
+}
+
+export interface JourneyTransitionSessionsResponse {
+  data: GetSessionsResponse;
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
 /**
  * Fetch page titles with pagination
  * GET /api/page-titles/:site
@@ -162,6 +183,35 @@ export async function fetchOrgEventCount(
 
   const response = await authedFetch<GetOrgEventCountResponse>(
     `/org-event-count/${organizationId}`,
+    queryParams
+  );
+  return response;
+}
+
+/**
+ * Fetch journey transition sessions
+ * GET /api/journey-transition-sessions/:site
+ */
+export async function fetchJourneyTransitionSessions(
+  site: string | number,
+  params: JourneyTransitionSessionsParams
+): Promise<JourneyTransitionSessionsResponse> {
+  const queryParams = {
+    ...toQueryParams(params),
+    source: params.source,
+    target: params.target,
+    sourceStep: params.sourceStep !== undefined ? String(params.sourceStep) : undefined,
+    targetStep: params.targetStep !== undefined ? String(params.targetStep) : undefined,
+    includeEvents: params.includeEvents !== undefined ? String(params.includeEvents) : undefined,
+    excludeEventNames: params.excludeEventNames && params.excludeEventNames.length > 0
+      ? JSON.stringify(params.excludeEventNames)
+      : undefined,
+    limit: params.limit,
+    page: params.page,
+  };
+
+  const response = await authedFetch<JourneyTransitionSessionsResponse>(
+    `/sites/${site}/journey-transition-sessions`,
     queryParams
   );
   return response;

@@ -114,7 +114,7 @@ export type {
 } from "./users";
 
 // Misc endpoints (retention, journeys, page titles, org event count)
-export { fetchRetention, fetchJourneys, fetchPageTitles, fetchOrgEventCount } from "./misc";
+export { fetchRetention, fetchJourneys, fetchPageTitles, fetchOrgEventCount, fetchJourneyTransitionSessions } from "./misc";
 export type {
   ProcessedRetentionData,
   RetentionMode,
@@ -129,6 +129,8 @@ export type {
   OrgEventCountResponse,
   GetOrgEventCountResponse,
   OrgEventCountParams,
+  JourneyTransitionSessionsParams,
+  JourneyTransitionSessionsResponse,
 } from "./misc";
 
 // Session Replay endpoints

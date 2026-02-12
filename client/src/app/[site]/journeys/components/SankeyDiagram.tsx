@@ -2,7 +2,14 @@
 
 import * as d3 from "d3";
 import { useTheme } from "next-themes";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const MIN_LINK_HEIGHT = 0;
 const MAX_LINK_HEIGHT = 100;
@@ -21,9 +28,34 @@ interface SankeyDiagramProps {
   domain: string;
 }
 
+interface LinkDetails {
+  source: string;
+  target: string;
+  sourceDisplay: string;
+  targetDisplay: string;
+  value: number;
+  percentage: number;
+  sourceNode?: any;
+  targetNode?: any;
+}
+
+interface NodeDetails {
+  id: string;
+  name: string;
+  displayName: string;
+  step: number;
+  count: number;
+  percentage: number;
+  incomingLinks: any[];
+  outgoingLinks: any[];
+  isEvent: boolean;
+}
+
 export function SankeyDiagram({ journeys, steps, maxJourneys, domain }: SankeyDiagramProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const { theme } = useTheme();
+  const [selectedLink, setSelectedLink] = useState<LinkDetails | null>(null);
+  const [selectedNode, setSelectedNode] = useState<NodeDetails | null>(null);
 
   useEffect(() => {
     if (!journeys || !svgRef.current || !domain) return;
@@ -315,7 +347,23 @@ export function SankeyDiagram({ journeys, steps, maxJourneys, domain }: SankeyDi
       .attr("height", d => d.height)
       .attr("fill", d => getNodeColor(d))
       .attr("rx", 2)
-      .attr("ry", 2);
+      .attr("ry", 2)
+      .style("cursor", "pointer")
+      .on("click", function (event, d) {
+        event.stopPropagation();
+        const displayName = isEvent(d.name) ? formatEventName(d.name) : d.name;
+        setSelectedNode({
+          id: d.id,
+          name: d.name,
+          displayName,
+          step: d.step,
+          count: d.count,
+          percentage: d.percentage,
+          incomingLinks: d.incomingLinks || [],
+          outgoingLinks: d.outgoingLinks || [],
+          isEvent: isEvent(d.name),
+        });
+      });
 
     // Helper to check if a step is an event (starts with "event:")
     const isEvent = (name: string) => name.startsWith("event:");
@@ -547,6 +595,27 @@ export function SankeyDiagram({ journeys, steps, maxJourneys, domain }: SankeyDi
         d3.selectAll(".node-rect").attr("opacity", 1);
         d3.selectAll(".node-text").attr("opacity", 1);
         tooltip.style("visibility", "hidden");
+      })
+      .on("click", function (event, d) {
+        event.stopPropagation();
+        const sourceNode = nodes.find(n => n.id === d.source);
+        const targetNode = nodes.find(n => n.id === d.target);
+        const totalValue = d3.sum(links, (l: any) => l.value);
+        const percentage = ((d.value / totalValue) * 100);
+        
+        const sourceDisplay = sourceNode ? (isEvent(sourceNode.name) ? formatEventName(sourceNode.name) : sourceNode.name) : "";
+        const targetDisplay = targetNode ? (isEvent(targetNode.name) ? formatEventName(targetNode.name) : targetNode.name) : "";
+
+        setSelectedLink({
+          source: d.source,
+          target: d.target,
+          sourceDisplay,
+          targetDisplay,
+          value: d.value,
+          percentage,
+          sourceNode,
+          targetNode,
+        });
       });
 
     // Cleanup tooltip on unmount
@@ -556,8 +625,154 @@ export function SankeyDiagram({ journeys, steps, maxJourneys, domain }: SankeyDi
   }, [journeys, steps, maxJourneys, domain, theme]);
 
   return (
-    <div className="overflow-x-auto w-full">
-      <svg ref={svgRef} className="min-w-full" />
-    </div>
+    <>
+      <div className="overflow-x-auto w-full">
+        <svg ref={svgRef} className="min-w-full" />
+      </div>
+      <Dialog open={!!selectedLink} onOpenChange={(open: boolean) => !open && setSelectedLink(null)}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Transition Details</DialogTitle>
+            <DialogDescription>
+              Statistics for this user journey transition
+            </DialogDescription>
+          </DialogHeader>
+          {selectedLink && (
+            <div className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                  Path
+                </div>
+                <div className="text-base text-neutral-900 dark:text-neutral-100">
+                  {selectedLink.sourceDisplay} → {selectedLink.targetDisplay}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                    Visits
+                  </div>
+                  <div className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+                    {selectedLink.value.toLocaleString()}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                    Percentage
+                  </div>
+                  <div className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+                    {selectedLink.percentage.toFixed(1)}%
+                  </div>
+                </div>
+              </div>
+
+              {selectedLink.sourceNode && (
+                <div className="space-y-2 pt-2 border-t border-neutral-200 dark:border-neutral-800">
+                  <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    Source Node
+                  </div>
+                  <div className="text-sm text-neutral-600 dark:text-neutral-400">
+                    <div>Visits: {selectedLink.sourceNode.count?.toLocaleString() || "N/A"}</div>
+                    <div>Percentage: {selectedLink.sourceNode.percentage?.toFixed(1) || "0.0"}%</div>
+                  </div>
+                </div>
+              )}
+
+              {selectedLink.targetNode && (
+                <div className="space-y-2 pt-2 border-t border-neutral-200 dark:border-neutral-800">
+                  <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    Target Node
+                  </div>
+                  <div className="text-sm text-neutral-600 dark:text-neutral-400">
+                    <div>Visits: {selectedLink.targetNode.count?.toLocaleString() || "N/A"}</div>
+                    <div>Percentage: {selectedLink.targetNode.percentage?.toFixed(1) || "0.0"}%</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!selectedNode} onOpenChange={(open: boolean) => !open && setSelectedNode(null)}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Node Details</DialogTitle>
+            <DialogDescription>
+              Statistics for this journey step
+            </DialogDescription>
+          </DialogHeader>
+          {selectedNode && (
+            <div className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                  {selectedNode.isEvent ? "Event" : "Page"}
+                </div>
+                <div className="text-base text-neutral-900 dark:text-neutral-100">
+                  {selectedNode.displayName}
+                </div>
+                {!selectedNode.isEvent && (
+                  <a
+                    href={`https://${domain}${selectedNode.name}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    Open page →
+                  </a>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                    Visits
+                  </div>
+                  <div className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+                    {selectedNode.count.toLocaleString()}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                    Percentage
+                  </div>
+                  <div className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+                    {selectedNode.percentage.toFixed(1)}%
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-2 border-t border-neutral-200 dark:border-neutral-800">
+                <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                  Step Position
+                </div>
+                <div className="text-sm text-neutral-600 dark:text-neutral-400">
+                  Step {selectedNode.step + 1} of {steps}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-2 border-t border-neutral-200 dark:border-neutral-800">
+                <div className="space-y-1">
+                  <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                    Incoming Links
+                  </div>
+                  <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                    {selectedNode.incomingLinks.length}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs text-neutral-500 dark:text-neutral-400">
+                    Outgoing Links
+                  </div>
+                  <div className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                    {selectedNode.outgoingLinks.length}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
