@@ -4,9 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3002 --turbopack",
-    "build": "npm run build:shared && next build",
-    "build:shared": "cd ../shared && npm install && npm run build && cd ../client",
-    "prebuild": "npm run build:shared",
+    "build": "next build",
     "start": "next start -p 3002",
     "lint": "eslint .",
     "knip": "knip",

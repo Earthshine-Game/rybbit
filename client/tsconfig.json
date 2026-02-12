@@ -25,6 +25,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@rybbit/shared": [
+        "../shared/dist"
       ]
     }
   },
