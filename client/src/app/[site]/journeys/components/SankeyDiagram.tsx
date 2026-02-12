@@ -317,48 +317,85 @@ export function SankeyDiagram({ journeys, steps, maxJourneys, domain }: SankeyDi
       .attr("rx", 2)
       .attr("ry", 2);
 
-    // Path text (clickable)
-    const pathLinks = nodeGroups
-      .append("a")
-      .attr("xlink:href", d => `https://${domain}${d.name}`)
-      .attr("target", "_blank")
-      .attr("rel", "noopener noreferrer");
+    // Helper to check if a step is an event (starts with "event:")
+    const isEvent = (name: string) => name.startsWith("event:");
+    
+    // Helper to format event name for display
+    const formatEventName = (name: string) => {
+      if (!isEvent(name)) return name;
+      // Remove "event:" prefix and format
+      const eventPart = name.replace(/^event:/, "");
+      const parts = eventPart.split(":");
+      if (parts.length > 1) {
+        // Format: "event:button_click:submit" -> "button_click: submit"
+        return `${parts[0]}: ${parts.slice(1).join(":")}`;
+      }
+      return eventPart;
+    };
 
-    pathLinks
-      .append("text")
-      .attr("class", "node-text node-link-text")
-      .attr("x", 36)
-      .attr("y", d => d.height / 2 + 4)
-      .text(d => d.name)
-      .attr("font-size", "12px")
-      .attr("fill", pathTextColor)
-      .attr("text-anchor", "start")
-      .style("text-decoration", "none");
+    // Path text - clickable for pageviews, plain text for events
+    nodeGroups.each(function (d) {
+      const nodeGroup = d3.select(this);
+      const isEventNode = isEvent(d.name);
+      const displayName = isEventNode ? formatEventName(d.name) : d.name;
 
-    // Add hover effect to show underline on link text
-    pathLinks
-      .on("mouseenter", function (event, d) {
-        d3.select(this).select(".node-link-text").style("text-decoration", "underline");
-        // Show tooltip
-        tooltip
-          .style("visibility", "visible")
-          .html(
-            `<div style="font-weight: 500; margin-bottom: 4px;">${d.name}</div>` +
-              `<div style="color: ${isDark ? "hsl(var(--neutral-300))" : "hsl(var(--neutral-600))"};">` +
-              `${d.count.toLocaleString()} visits (${d.percentage.toFixed(1)}%)</div>`
-          )
-          .style("top", event.pageY - 10 + "px")
-          .style("left", event.pageX + 10 + "px");
-        // Stop event propagation to prevent nodeGroups handler from firing
-        event.stopPropagation();
-      })
-      .on("mousemove", function (event) {
-        tooltip.style("top", event.pageY - 10 + "px").style("left", event.pageX + 10 + "px");
-      })
-      .on("mouseleave", function () {
-        d3.select(this).select(".node-link-text").style("text-decoration", "none");
-        tooltip.style("visibility", "hidden");
-      });
+      if (isEventNode) {
+        // For events, just add text (not clickable)
+        nodeGroup
+          .append("text")
+          .attr("class", "node-text")
+          .attr("x", 36)
+          .attr("y", d.height / 2 + 4)
+          .text(displayName)
+          .attr("font-size", "12px")
+          .attr("fill", pathTextColor)
+          .attr("text-anchor", "start")
+          .style("font-style", "italic");
+      } else {
+        // For pageviews, make it a clickable link
+        const pathLink = nodeGroup
+          .append("a")
+          .attr("xlink:href", `https://${domain}${d.name}`)
+          .attr("target", "_blank")
+          .attr("rel", "noopener noreferrer");
+
+        pathLink
+          .append("text")
+          .attr("class", "node-text node-link-text")
+          .attr("x", 36)
+          .attr("y", d.height / 2 + 4)
+          .text(displayName)
+          .attr("font-size", "12px")
+          .attr("fill", pathTextColor)
+          .attr("text-anchor", "start")
+          .style("text-decoration", "none");
+
+        // Add hover effect to show underline on link text
+        pathLink
+          .on("mouseenter", function (event) {
+            d3.select(this).select(".node-link-text").style("text-decoration", "underline");
+            // Show tooltip
+            tooltip
+              .style("visibility", "visible")
+              .html(
+                `<div style="font-weight: 500; margin-bottom: 4px;">${d.name}</div>` +
+                  `<div style="color: ${isDark ? "hsl(var(--neutral-300))" : "hsl(var(--neutral-600))"};">` +
+                  `${d.count.toLocaleString()} visits (${d.percentage.toFixed(1)}%)</div>`
+              )
+              .style("top", event.pageY - 10 + "px")
+              .style("left", event.pageX + 10 + "px");
+            // Stop event propagation to prevent nodeGroups handler from firing
+            event.stopPropagation();
+          })
+          .on("mousemove", function (event) {
+            tooltip.style("top", event.pageY - 10 + "px").style("left", event.pageX + 10 + "px");
+          })
+          .on("mouseleave", function () {
+            d3.select(this).select(".node-link-text").style("text-decoration", "none");
+            tooltip.style("visibility", "hidden");
+          });
+      }
+    });
 
     // Node hover effects
     nodeGroups
@@ -367,10 +404,11 @@ export function SankeyDiagram({ journeys, steps, maxJourneys, domain }: SankeyDi
         const connectedNodeIds = new Set<string>([nodeId]);
 
         // Show tooltip with node info
+        const displayName = isEvent(d.name) ? formatEventName(d.name) : d.name;
         tooltip
           .style("visibility", "visible")
           .html(
-            `<div style="font-weight: 500; margin-bottom: 4px;">${d.name}</div>` +
+            `<div style="font-weight: 500; margin-bottom: 4px;">${displayName}</div>` +
               `<div style="color: ${isDark ? "hsl(var(--neutral-300))" : "hsl(var(--neutral-600))"};">` +
               `${d.count.toLocaleString()} visits (${d.percentage.toFixed(1)}%)</div>`
           )
@@ -451,11 +489,14 @@ export function SankeyDiagram({ journeys, steps, maxJourneys, domain }: SankeyDi
         const targetNode = nodes.find(n => n.id === d.target);
         const totalValue = d3.sum(links, (l: any) => l.value);
         const percentage = ((d.value / totalValue) * 100).toFixed(1);
+        
+        const sourceDisplay = sourceNode ? (isEvent(sourceNode.name) ? formatEventName(sourceNode.name) : sourceNode.name) : "";
+        const targetDisplay = targetNode ? (isEvent(targetNode.name) ? formatEventName(targetNode.name) : targetNode.name) : "";
 
         tooltip
           .style("visibility", "visible")
           .html(
-            `<div style="font-weight: 500; margin-bottom: 4px;">${sourceNode?.name} → ${targetNode?.name}</div>` +
+            `<div style="font-weight: 500; margin-bottom: 4px;">${sourceDisplay} → ${targetDisplay}</div>` +
               `<div style="color: ${isDark ? "hsl(var(--neutral-300))" : "hsl(var(--neutral-600))"};">` +
               `${d.value.toLocaleString()} visits (${percentage}%)</div>`
           );

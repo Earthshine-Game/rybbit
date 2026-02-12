@@ -66,6 +66,7 @@ export interface JourneysParams extends CommonApiParams {
   steps?: number;
   limit?: number;
   stepFilters?: Record<number, string>;
+  includeEvents?: boolean;
 }
 
 /**
@@ -101,6 +102,7 @@ export async function fetchJourneys(
       params.stepFilters && Object.keys(params.stepFilters).length > 0
         ? JSON.stringify(params.stepFilters)
         : undefined,
+    includeEvents: params.includeEvents !== undefined ? String(params.includeEvents) : undefined,
   };
 
   const response = await authedFetch<JourneysResponse>(

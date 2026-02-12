@@ -4,6 +4,7 @@ import { useJourneys } from "@/api/analytics/hooks/useGetJourneys";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { InputWithSuggestions, SuggestionOption } from "@/components/ui/input-with-suggestions";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { useGetSite } from "../../../api/admin/hooks/useSites";
@@ -22,6 +23,7 @@ export default function JourneysPage() {
   const [steps, setSteps] = useState<number>(4);
   const [maxJourneys, setMaxJourneys] = useState<number>(50);
   const [stepFilters, setStepFilters] = useState<Record<number, string>>({});
+  const [includeEvents, setIncludeEvents] = useState<boolean>(true);
 
   const { data: siteMetadata } = useGetSite();
   const { time } = useStore();
@@ -46,6 +48,7 @@ export default function JourneysPage() {
     time,
     limit: maxJourneys,
     stepFilters,
+    includeEvents,
   });
 
   return (
@@ -75,6 +78,16 @@ export default function JourneysPage() {
               max={200}
               step={10}
               className="flex-1"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <label htmlFor="include-events" className="text-sm text-neutral-600 dark:text-neutral-300 whitespace-nowrap cursor-pointer">
+              Include Events
+            </label>
+            <Switch
+              id="include-events"
+              checked={includeEvents}
+              onCheckedChange={setIncludeEvents}
             />
           </div>
         </div>

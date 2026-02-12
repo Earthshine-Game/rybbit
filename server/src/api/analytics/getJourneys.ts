@@ -11,13 +11,17 @@ export const getJourneys = async (
       steps?: string;
       limit?: string;
       stepFilters?: string;
+      includeEvents?: string;
     }>;
   }>,
   reply: FastifyReply
 ) => {
   try {
     const { siteId } = request.params;
-    const { steps = "3", limit = "100", filters, stepFilters } = request.query;
+    const { steps = "3", limit = "100", filters, stepFilters, includeEvents = "true" } = request.query;
+    
+    // Parse includeEvents parameter (default to true to include events)
+    const includeEventsInJourney = includeEvents === "true" || includeEvents === "1";
 
     const maxSteps = parseInt(steps, 10);
     const journeyLimit = parseInt(limit, 10);
@@ -66,23 +70,33 @@ export const getJourneys = async (
       .join(" AND ");
 
     // Query to find sequences of events (journeys) for each user
+    // Include both pageviews and custom events in the journey
     const result = await clickhouse.query({
       query: `
         WITH user_paths AS (
           SELECT
             session_id,
-            arrayCompact(groupArray(pathname)) AS path_sequence
+            arrayCompact(groupArray(step_label)) AS path_sequence
           FROM (
             SELECT
               session_id,
-              pathname,
-              timestamp
+              timestamp,
+              -- For pageviews, use pathname; for events, use event label format
+              CASE
+                WHEN type = 'pageview' THEN pathname
+                WHEN type IN ('custom_event', 'button_click', 'copy', 'form_submit', 'input_change', 'outbound') THEN
+                  CONCAT('event:', type, IF(event_name != '' AND event_name IS NOT NULL, CONCAT(':', event_name), ''))
+                ELSE pathname
+              END AS step_label
             FROM events
             WHERE
               site_id = {siteId:Int32}
               ${timeStatement || ""}
               ${filterStatement || ""}
-              AND type = 'pageview'
+              AND (
+                type = 'pageview'
+                ${includeEventsInJourney ? "OR type IN ('custom_event', 'button_click', 'copy', 'form_submit', 'input_change', 'outbound')" : ""}
+              )
             ORDER BY session_id, timestamp
           )
           GROUP BY session_id
