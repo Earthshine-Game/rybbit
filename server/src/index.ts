@@ -30,6 +30,7 @@ import {
   getGoalSessions,
   getGoals,
   getJourneys,
+  getJourneyStepEventDetails,
   getLiveUsercount,
   getMetric,
   getOrgEventCount,
@@ -256,6 +257,7 @@ async function analyticsRoutes(fastify: FastifyInstance) {
   fastify.get("/sites/:siteId/session-locations", publicSite, getSessionLocations);
   fastify.get("/sites/:siteId/funnels", publicSite, getFunnels);
   fastify.get("/sites/:siteId/journeys", publicSite, getJourneys);
+  fastify.get("/sites/:siteId/journeys/step-details", publicSite, getJourneyStepEventDetails);
   fastify.post("/sites/:siteId/funnels/analyze", publicSite, getFunnel);
   fastify.post("/sites/:siteId/funnels/:stepNumber/sessions", publicSite, getFunnelStepSessions);
   fastify.post("/sites/:siteId/funnels", authSite, createFunnel);

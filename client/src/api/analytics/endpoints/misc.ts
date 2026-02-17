@@ -147,6 +147,31 @@ export interface JourneyTransitionSessionsResponse {
   };
 }
 
+// Journey step event details types
+export interface JourneyStepEventDetailsProperty {
+  value: string;
+  count: number;
+}
+
+export interface JourneyStepEventDetails {
+  properties: {
+    button_name?: JourneyStepEventDetailsProperty[];
+    click_coordinate?: JourneyStepEventDetailsProperty[];
+    text?: JourneyStepEventDetailsProperty[];
+    formId?: JourneyStepEventDetailsProperty[];
+    formAction?: JourneyStepEventDetailsProperty[];
+    inputName?: JourneyStepEventDetailsProperty[];
+    inputType?: JourneyStepEventDetailsProperty[];
+    url?: JourneyStepEventDetailsProperty[];
+    [key: string]: JourneyStepEventDetailsProperty[] | undefined;
+  };
+}
+
+export interface JourneyStepEventDetailsParams extends CommonApiParams {
+  stepLabel: string;
+  stepIndex?: number;
+}
+
 /**
  * Fetch page titles with pagination
  * GET /api/page-titles/:site
@@ -212,6 +237,27 @@ export async function fetchJourneyTransitionSessions(
 
   const response = await authedFetch<JourneyTransitionSessionsResponse>(
     `/sites/${site}/journey-transition-sessions`,
+    queryParams
+  );
+  return response;
+}
+
+/**
+ * Fetch journey step event details
+ * GET /api/journeys/step-details/:site
+ */
+export async function fetchJourneyStepEventDetails(
+  site: string | number,
+  params: JourneyStepEventDetailsParams
+): Promise<JourneyStepEventDetails> {
+  const queryParams = {
+    ...toQueryParams(params),
+    stepLabel: params.stepLabel,
+    stepIndex: params.stepIndex !== undefined ? String(params.stepIndex) : undefined,
+  };
+
+  const response = await authedFetch<JourneyStepEventDetails>(
+    `/sites/${site}/journeys/step-details`,
     queryParams
   );
   return response;

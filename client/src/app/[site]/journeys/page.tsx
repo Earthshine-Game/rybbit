@@ -181,6 +181,8 @@ export default function JourneysPage() {
                 steps={steps}
                 maxJourneys={maxJourneys}
                 domain={siteMetadata.domain}
+                siteId={siteMetadata?.siteId}
+                time={time}
               />
             ) : null}
             {error && (

@@ -10,6 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useJourneyStepEventDetails } from "../../../../api/analytics/hooks/useGetJourneyStepEventDetails";
+import { Time } from "../../../../components/DateSelector/types";
+import { useStore } from "../../../../lib/store";
 
 const MIN_LINK_HEIGHT = 0;
 const MAX_LINK_HEIGHT = 100;
@@ -26,6 +29,8 @@ interface SankeyDiagramProps {
   steps: number;
   maxJourneys: number;
   domain: string;
+  siteId?: number;
+  time: Time;
 }
 
 interface LinkDetails {
@@ -51,11 +56,20 @@ interface NodeDetails {
   isEvent: boolean;
 }
 
-export function SankeyDiagram({ journeys, steps, maxJourneys, domain }: SankeyDiagramProps) {
+export function SankeyDiagram({ journeys, steps, maxJourneys, domain, siteId, time }: SankeyDiagramProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const { theme } = useTheme();
   const [selectedLink, setSelectedLink] = useState<LinkDetails | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeDetails | null>(null);
+  
+  // Fetch event details when a node is selected
+  const { data: eventDetails, isLoading: isLoadingEventDetails, error: eventDetailsError } = useJourneyStepEventDetails({
+    siteId,
+    stepLabel: selectedNode?.name || "",
+    stepIndex: selectedNode?.step,
+    time,
+    enabled: !!selectedNode && selectedNode.isEvent,
+  });
 
   useEffect(() => {
     if (!journeys || !svgRef.current || !domain) return;
@@ -769,6 +783,124 @@ export function SankeyDiagram({ journeys, steps, maxJourneys, domain }: SankeyDi
                   </div>
                 </div>
               </div>
+
+              {selectedNode.isEvent && (
+                <div className="space-y-3 pt-2 border-t border-neutral-200 dark:border-neutral-800">
+                  <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    Event Details
+                  </div>
+                  {isLoadingEventDetails ? (
+                    <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                      Loading event details...
+                    </div>
+                  ) : eventDetailsError ? (
+                    <div className="text-sm text-red-500 dark:text-red-400">
+                      Error loading event details. Please check the console for details.
+                    </div>
+                  ) : eventDetails?.properties && Object.keys(eventDetails.properties).length > 0 ? (
+                    <div className="space-y-3">
+                      {eventDetails.properties.button_name && eventDetails.properties.button_name.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
+                            Button Names (sorted by frequency)
+                          </div>
+                          <div className="space-y-1 max-h-48 overflow-y-auto">
+                            {eventDetails.properties.button_name.map((item, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center justify-between text-sm bg-neutral-50 dark:bg-neutral-850 px-3 py-2 rounded"
+                              >
+                                <span className="text-neutral-900 dark:text-neutral-100">{item.value || "(empty)"}</span>
+                                <span className="text-neutral-500 dark:text-neutral-400 font-medium">
+                                  {item.count.toLocaleString()}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {eventDetails.properties.text && eventDetails.properties.text.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
+                            Button Text (sorted by frequency)
+                          </div>
+                          <div className="space-y-1 max-h-48 overflow-y-auto">
+                            {eventDetails.properties.text.map((item, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center justify-between text-sm bg-neutral-50 dark:bg-neutral-850 px-3 py-2 rounded"
+                              >
+                                <span className="text-neutral-900 dark:text-neutral-100">{item.value || "(empty)"}</span>
+                                <span className="text-neutral-500 dark:text-neutral-400 font-medium">
+                                  {item.count.toLocaleString()}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {eventDetails.properties.click_coordinate && eventDetails.properties.click_coordinate.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
+                            Click Coordinates
+                          </div>
+                          <div className="space-y-1 max-h-48 overflow-y-auto">
+                            {eventDetails.properties.click_coordinate.map((item, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center justify-between text-sm bg-neutral-50 dark:bg-neutral-850 px-3 py-2 rounded"
+                              >
+                                <span className="text-neutral-900 dark:text-neutral-100 font-mono text-xs">
+                                  {item.value || "(empty)"}
+                                </span>
+                                <span className="text-neutral-500 dark:text-neutral-400 font-medium">
+                                  {item.count.toLocaleString()}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {/* Show other properties if they exist */}
+                      {Object.entries(eventDetails.properties)
+                        .filter(([key]) => key !== "button_name" && key !== "click_coordinate" && key !== "text")
+                        .map(([key, values]) => (
+                          values && values.length > 0 && (
+                            <div key={key} className="space-y-2">
+                              <div className="text-xs font-medium text-neutral-600 dark:text-neutral-400 capitalize">
+                                {key.replace(/_/g, " ")}
+                              </div>
+                              <div className="space-y-1 max-h-32 overflow-y-auto">
+                                {values.slice(0, 5).map((item, index) => (
+                                  <div
+                                    key={index}
+                                    className="flex items-center justify-between text-sm bg-neutral-50 dark:bg-neutral-850 px-3 py-2 rounded"
+                                  >
+                                    <span className="text-neutral-900 dark:text-neutral-100 truncate">
+                                      {item.value || "(empty)"}
+                                    </span>
+                                    <span className="text-neutral-500 dark:text-neutral-400 font-medium ml-2">
+                                      {item.count.toLocaleString()}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                        No event details available
+                      </div>
+                      <div className="text-xs text-neutral-400 dark:text-neutral-500">
+                        This event may not have any properties, or the event type may not match.
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </DialogContent>

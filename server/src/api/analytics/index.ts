@@ -34,6 +34,7 @@ export { getErrorBucketed } from "./getErrorBucketed.js";
 export { getErrorEvents } from "./getErrorEvents.js";
 export { getErrorNames } from "./getErrorNames.js";
 export { getJourneys } from "./getJourneys.js";
+export { getJourneyStepEventDetails } from "./getJourneyStepEventDetails.js";
 export { getLiveUsercount } from "./getLiveUsercount.js";
 export { getMetric } from "./getMetric.js";
 export { getOrgEventCount } from "./getOrgEventCount.js";
