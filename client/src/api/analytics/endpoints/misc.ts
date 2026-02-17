@@ -153,6 +153,13 @@ export interface JourneyStepEventDetailsProperty {
   count: number;
 }
 
+export interface JourneyStepEvent {
+  timestamp: string;
+  user_id: string;
+  identified_user_id: string;
+  session_id: string;
+}
+
 export interface JourneyStepEventDetails {
   properties: {
     button_name?: JourneyStepEventDetailsProperty[];
@@ -165,6 +172,7 @@ export interface JourneyStepEventDetails {
     url?: JourneyStepEventDetailsProperty[];
     [key: string]: JourneyStepEventDetailsProperty[] | undefined;
   };
+  events?: JourneyStepEvent[];
 }
 
 export interface JourneyStepEventDetailsParams extends CommonApiParams {

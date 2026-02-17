@@ -3,6 +3,9 @@
 import * as d3 from "d3";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
+import { DateTime } from "luxon";
 import {
   Dialog,
   DialogContent,
@@ -10,9 +13,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Avatar } from "../../../../components/Avatar";
 import { useJourneyStepEventDetails } from "../../../../api/analytics/hooks/useGetJourneyStepEventDetails";
 import { Time } from "../../../../components/DateSelector/types";
-import { useStore } from "../../../../lib/store";
+import { useStore, getTimezone } from "../../../../lib/store";
+import { getUserDisplayName } from "../../../../lib/utils";
+import { hour12, userLocale } from "../../../../lib/dateTimeUtils";
 
 const MIN_LINK_HEIGHT = 0;
 const MAX_LINK_HEIGHT = 100;
@@ -59,6 +65,8 @@ interface NodeDetails {
 export function SankeyDiagram({ journeys, steps, maxJourneys, domain, siteId, time }: SankeyDiagramProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const { theme } = useTheme();
+  const params = useParams();
+  const site = params?.site as string;
   const [selectedLink, setSelectedLink] = useState<LinkDetails | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeDetails | null>(null);
   
@@ -785,20 +793,21 @@ export function SankeyDiagram({ journeys, steps, maxJourneys, domain, siteId, ti
               </div>
 
               {selectedNode.isEvent && (
-                <div className="space-y-3 pt-2 border-t border-neutral-200 dark:border-neutral-800">
-                  <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                    Event Details
-                  </div>
-                  {isLoadingEventDetails ? (
-                    <div className="text-sm text-neutral-500 dark:text-neutral-400">
-                      Loading event details...
+                <>
+                  <div className="space-y-3 pt-2 border-t border-neutral-200 dark:border-neutral-800">
+                    <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                      Event Details
                     </div>
-                  ) : eventDetailsError ? (
-                    <div className="text-sm text-red-500 dark:text-red-400">
-                      Error loading event details. Please check the console for details.
-                    </div>
-                  ) : eventDetails?.properties && Object.keys(eventDetails.properties).length > 0 ? (
-                    <div className="space-y-3">
+                    {isLoadingEventDetails ? (
+                      <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                        Loading event details...
+                      </div>
+                    ) : eventDetailsError ? (
+                      <div className="text-sm text-red-500 dark:text-red-400">
+                        Error loading event details. Please check the console for details.
+                      </div>
+                    ) : eventDetails?.properties && Object.keys(eventDetails.properties).length > 0 ? (
+                      <div className="space-y-3">
                       {eventDetails.properties.button_name && eventDetails.properties.button_name.length > 0 && (
                         <div className="space-y-2">
                           <div className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
@@ -899,7 +908,49 @@ export function SankeyDiagram({ journeys, steps, maxJourneys, domain, siteId, ti
                       </div>
                     </div>
                   )}
-                </div>
+                  </div>
+                  
+                  {eventDetails?.events && eventDetails.events.length > 0 && (
+                    <div className="space-y-3 pt-2 border-t border-neutral-200 dark:border-neutral-800">
+                      <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                        Recent Events
+                      </div>
+                      <div className="space-y-1 max-h-64 overflow-y-auto">
+                        {eventDetails.events.map((event, index) => {
+                          const eventTime = DateTime.fromSQL(event.timestamp, { zone: "utc" })
+                            .setLocale(userLocale)
+                            .setZone(getTimezone());
+                          const userProfileId = event.identified_user_id || event.user_id;
+                          const displayName = getUserDisplayName({
+                            identified_user_id: event.identified_user_id || undefined,
+                            user_id: event.user_id,
+                          });
+                          
+                          return (
+                            <div
+                              key={index}
+                              className="flex items-center gap-3 text-sm bg-neutral-50 dark:bg-neutral-850 px-3 py-2 rounded border border-neutral-200 dark:border-neutral-800"
+                            >
+                              <div className="flex-shrink-0 text-neutral-500 dark:text-neutral-400 w-32">
+                                {eventTime.toFormat(hour12 ? "MMM d, h:mm:ss a" : "dd MMM, HH:mm:ss")}
+                              </div>
+                              <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <Avatar size={20} id={event.user_id} lastActiveTime={eventTime} />
+                                <Link
+                                  href={`/${site}/user/${encodeURIComponent(userProfileId)}`}
+                                  className="text-neutral-700 dark:text-neutral-200 hover:underline truncate"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {displayName}
+                                </Link>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}

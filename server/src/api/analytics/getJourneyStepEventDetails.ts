@@ -19,6 +19,13 @@ export interface JourneyStepEventDetails {
   }[] | undefined;
 }
 
+export interface JourneyStepEvent {
+  timestamp: string;
+  user_id: string;
+  identified_user_id: string;
+  session_id: string;
+}
+
 export const getJourneyStepEventDetails = async (
   request: FastifyRequest<{
     Params: { siteId: string };
@@ -56,6 +63,8 @@ export const getJourneyStepEventDetails = async (
             session_id,
             timestamp,
             props,
+            user_id,
+            identified_user_id,
             -- Calculate step_label (same logic as getJourneys)
             CASE
               WHEN type = 'pageview' THEN 
@@ -88,7 +97,9 @@ export const getJourneyStepEventDetails = async (
           SELECT
             session_id,
             timestamp,
-            props
+            props,
+            user_id,
+            identified_user_id
           FROM numbered_events
           WHERE
             step_label = '${stepLabel.replace(/'/g, "''")}'
@@ -121,7 +132,62 @@ export const getJourneyStepEventDetails = async (
       },
     });
 
+    // Query to get individual event records with user and timestamp
+    const eventsResult = await clickhouse.query({
+      query: `
+        WITH numbered_events AS (
+          SELECT
+            session_id,
+            timestamp,
+            user_id,
+            identified_user_id,
+            -- Calculate step_label (same logic as getJourneys)
+            CASE
+              WHEN type = 'pageview' THEN 
+                CASE
+                  WHEN startsWith(pathname, '/asset/draft/') THEN '/asset/draft'
+                  ELSE pathname
+                END
+              WHEN type IN ('custom_event', 'button_click', 'copy', 'form_submit', 'input_change', 'outbound') THEN
+                CONCAT('event:', type, IF(event_name != '' AND event_name IS NOT NULL, CONCAT(':', event_name), ''))
+              ELSE 
+                CASE
+                  WHEN startsWith(pathname, '/asset/draft/') THEN '/asset/draft'
+                  ELSE pathname
+                END
+            END AS step_label,
+            -- Number events within each session
+            row_number() OVER (PARTITION BY session_id ORDER BY timestamp) AS step_number
+          FROM events
+          WHERE
+            site_id = {siteId:Int32}
+            ${timeStatement || ""}
+            ${filterStatement || ""}
+            AND (
+              type = 'pageview'
+              OR type IN ('custom_event', 'button_click', 'copy', 'form_submit', 'input_change', 'outbound')
+            )
+        )
+        
+        SELECT
+          toString(timestamp) AS timestamp,
+          user_id,
+          identified_user_id,
+          session_id
+        FROM numbered_events
+        WHERE
+          step_label = '${stepLabel.replace(/'/g, "''")}'
+          ${targetStepPosition !== null ? `AND step_number = ${targetStepPosition}` : ""}
+        ORDER BY timestamp DESC
+        LIMIT 100
+      `,
+      query_params: {
+        siteId: parseInt(siteId, 10),
+      },
+    });
+
     const data = await result.json();
+    const eventsData = await eventsResult.json();
     
     // Group properties by key
     const groupedProperties: JourneyStepEventDetails = {};
@@ -145,8 +211,22 @@ export const getJourneyStepEventDetails = async (
       });
     }
 
+    // Parse individual events
+    const events: JourneyStepEvent[] = [];
+    if (eventsData.data && Array.isArray(eventsData.data)) {
+      eventsData.data.forEach((item: any) => {
+        events.push({
+          timestamp: item.timestamp,
+          user_id: item.user_id || "",
+          identified_user_id: item.identified_user_id || "",
+          session_id: item.session_id || "",
+        });
+      });
+    }
+
     return reply.send({
       properties: groupedProperties,
+      events,
     });
   } catch (error) {
     console.error("Error getting journey step event details:", error);
