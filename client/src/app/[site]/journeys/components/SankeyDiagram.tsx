@@ -709,7 +709,7 @@ export function SankeyDiagram({ journeys, steps, maxJourneys, domain, siteId, ti
         </DialogContent>
       </Dialog>
       <Dialog open={!!selectedNode} onOpenChange={(open: boolean) => !open && setSelectedNode(null)}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Node Details</DialogTitle>
             <DialogDescription>
@@ -717,7 +717,7 @@ export function SankeyDiagram({ journeys, steps, maxJourneys, domain, siteId, ti
             </DialogDescription>
           </DialogHeader>
           {selectedNode && (
-            <div className="space-y-4 mt-4">
+            <div className="space-y-4 mt-4 overflow-y-auto flex-1">
               <div className="space-y-2">
                 <div className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                   {selectedNode.isEvent ? "Event" : "Page"}
