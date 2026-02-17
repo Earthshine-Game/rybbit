@@ -65,7 +65,10 @@ export function SessionCard({ session, onClick, userId, expandedByDefault, highl
   );
 
   return (
-    <div className="rounded-lg bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-850 overflow-hidden">
+    <div 
+      className="rounded-lg bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-850 overflow-hidden"
+      data-session-id={session.session_id}
+    >
       <div className="p-3 cursor-pointer" onClick={handleCardClick}>
         {/* Mobile layout - two rows */}
         <div className="flex flex-col gap-2 md:hidden">

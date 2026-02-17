@@ -15,6 +15,8 @@ interface SessionsListProps {
   userId?: string;
   headerElement?: React.ReactNode;
   pageSize?: number;
+  targetSessionId?: string;
+  highlightedEventTimestamp?: number;
 }
 
 export function SessionsList({
@@ -28,6 +30,8 @@ export function SessionsList({
   userId,
   headerElement,
   pageSize,
+  targetSessionId,
+  highlightedEventTimestamp,
 }: SessionsListProps) {
   return (
     <div className="space-y-3">
@@ -54,7 +58,13 @@ export function SessionsList({
         <SessionCardSkeleton userId={userId} count={pageSize} />
       ) : (
         sessions.map((session, index) => (
-          <SessionCard key={`${session.session_id}-${index}`} session={session} userId={userId} />
+          <SessionCard 
+            key={`${session.session_id}-${index}`} 
+            session={session} 
+            userId={userId}
+            expandedByDefault={targetSessionId === session.session_id}
+            highlightedEventTimestamp={targetSessionId === session.session_id ? highlightedEventTimestamp : undefined}
+          />
         ))
       )}
     </div>

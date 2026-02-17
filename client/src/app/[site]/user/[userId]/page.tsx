@@ -2,8 +2,8 @@
 
 import { SessionsList } from "@/components/Sessions/SessionsList";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import { useState, useEffect, useMemo } from "react";
 import { useUserInfo } from "../../../../api/analytics/hooks/userGetInfo";
 import { useGetSessions, useGetUserSessionCount } from "../../../../api/analytics/hooks/useGetUserSessions";
 import {
@@ -53,6 +53,35 @@ export default function UserPage() {
   const hasNextPage = allSessions.length > LIMIT;
   const sessions = allSessions.slice(0, LIMIT);
   const hasPrevPage = page > 1;
+
+  // Handle query parameters for highlighting events
+  const searchParams = useSearchParams();
+  const sessionIdFromUrl = searchParams?.get("sessionId");
+  const eventTimestampFromUrl = searchParams?.get("eventTimestamp");
+  
+  // Find the session that matches the sessionId from URL
+  const targetSession = useMemo(() => {
+    if (!sessionIdFromUrl) return null;
+    return sessions.find(s => s.session_id === sessionIdFromUrl);
+  }, [sessions, sessionIdFromUrl]);
+
+  // Parse event timestamp
+  const highlightedEventTimestamp = eventTimestampFromUrl 
+    ? parseInt(eventTimestampFromUrl, 10) 
+    : undefined;
+
+  // Scroll to and expand the target session when it's found
+  useEffect(() => {
+    if (targetSession && highlightedEventTimestamp) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        const element = document.querySelector(`[data-session-id="${targetSession.session_id}"]`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
+    }
+  }, [targetSession, highlightedEventTimestamp]);
 
   const { getRegionName } = useGetRegionName();
 
@@ -134,6 +163,8 @@ export default function UserPage() {
             hasNextPage={hasNextPage}
             hasPrevPage={hasPrevPage}
             userId={userId}
+            targetSessionId={sessionIdFromUrl || undefined}
+            highlightedEventTimestamp={highlightedEventTimestamp}
           />
         </div>
       </div>

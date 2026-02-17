@@ -1004,26 +1004,28 @@ export function SankeyDiagram({ journeys, steps, maxJourneys, domain, siteId, ti
                             identified_user_id: event.identified_user_id || undefined,
                             user_id: event.user_id,
                           });
+                          // Convert timestamp to Unix timestamp (milliseconds) for query parameter
+                          const eventTimestamp = eventTime.toMillis();
+                          // Build URL with query parameters for session and event timestamp
+                          const userProfileUrl = `/${site}/user/${encodeURIComponent(userProfileId)}?sessionId=${encodeURIComponent(event.session_id)}&eventTimestamp=${eventTimestamp}`;
                           
                           return (
-                            <div
+                            <Link
                               key={index}
-                              className="flex items-center gap-3 text-sm bg-neutral-50 dark:bg-neutral-850 px-3 py-2 rounded border border-neutral-200 dark:border-neutral-800"
+                              href={userProfileUrl}
+                              className="flex items-center gap-3 text-sm bg-neutral-50 dark:bg-neutral-850 px-3 py-2 rounded border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+                              onClick={(e) => e.stopPropagation()}
                             >
                               <div className="flex-shrink-0 text-neutral-500 dark:text-neutral-400 w-32">
                                 {eventTime.toFormat(hour12 ? "MMM d, h:mm:ss a" : "dd MMM, HH:mm:ss")}
                               </div>
                               <div className="flex items-center gap-2 min-w-0 flex-1">
                                 <Avatar size={20} id={event.user_id} lastActiveTime={eventTime} />
-                                <Link
-                                  href={`/${site}/user/${encodeURIComponent(userProfileId)}`}
-                                  className="text-neutral-700 dark:text-neutral-200 hover:underline truncate"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
+                                <span className="text-neutral-700 dark:text-neutral-200 truncate">
                                   {displayName}
-                                </Link>
+                                </span>
                               </div>
-                            </div>
+                            </Link>
                           );
                         })}
                       </div>
