@@ -19,6 +19,7 @@ import { Time } from "../../../../components/DateSelector/types";
 import { useStore, getTimezone } from "../../../../lib/store";
 import { getUserDisplayName } from "../../../../lib/utils";
 import { hour12, userLocale } from "../../../../lib/dateTimeUtils";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 const MIN_LINK_HEIGHT = 0;
 const MAX_LINK_HEIGHT = 100;
@@ -69,6 +70,7 @@ export function SankeyDiagram({ journeys, steps, maxJourneys, domain, siteId, ti
   const site = params?.site as string;
   const [selectedLink, setSelectedLink] = useState<LinkDetails | null>(null);
   const [selectedNode, setSelectedNode] = useState<NodeDetails | null>(null);
+  const [expandedProperties, setExpandedProperties] = useState<Set<string>>(new Set());
   
   // Fetch event details when a node is selected
   const { data: eventDetails, isLoading: isLoadingEventDetails, error: eventDetailsError } = useJourneyStepEventDetails({
@@ -78,6 +80,11 @@ export function SankeyDiagram({ journeys, steps, maxJourneys, domain, siteId, ti
     time,
     enabled: !!selectedNode && selectedNode.isEvent,
   });
+
+  // Reset expanded properties when selected node changes
+  useEffect(() => {
+    setExpandedProperties(new Set());
+  }, [selectedNode?.id]);
 
   useEffect(() => {
     if (!journeys || !svgRef.current || !domain) return;
@@ -810,64 +817,118 @@ export function SankeyDiagram({ journeys, steps, maxJourneys, domain, siteId, ti
                       <div className="space-y-3">
                       {eventDetails.properties.button_name && eventDetails.properties.button_name.length > 0 && (
                         <div className="space-y-2">
-                          <div className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
-                            Button Names (sorted by frequency)
-                          </div>
-                          <div className="space-y-1 max-h-48 overflow-y-auto">
-                            {eventDetails.properties.button_name.map((item, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center justify-between text-sm bg-neutral-50 dark:bg-neutral-850 px-3 py-2 rounded"
-                              >
-                                <span className="text-neutral-900 dark:text-neutral-100">{item.value || "(empty)"}</span>
-                                <span className="text-neutral-500 dark:text-neutral-400 font-medium">
-                                  {item.count.toLocaleString()}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
+                          <button
+                            onClick={() => {
+                              const newExpanded = new Set(expandedProperties);
+                              if (newExpanded.has("button_name")) {
+                                newExpanded.delete("button_name");
+                              } else {
+                                newExpanded.add("button_name");
+                              }
+                              setExpandedProperties(newExpanded);
+                            }}
+                            className="flex items-center justify-between w-full text-left text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
+                          >
+                            <span>Button Names (sorted by frequency)</span>
+                            {expandedProperties.has("button_name") ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </button>
+                          {expandedProperties.has("button_name") && (
+                            <div className="space-y-1 max-h-48 overflow-y-auto">
+                              {eventDetails.properties.button_name.map((item, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center justify-between text-sm bg-neutral-50 dark:bg-neutral-850 px-3 py-2 rounded"
+                                >
+                                  <span className="text-neutral-900 dark:text-neutral-100">{item.value || "(empty)"}</span>
+                                  <span className="text-neutral-500 dark:text-neutral-400 font-medium">
+                                    {item.count.toLocaleString()}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
                       {eventDetails.properties.text && eventDetails.properties.text.length > 0 && (
                         <div className="space-y-2">
-                          <div className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
-                            Button Text (sorted by frequency)
-                          </div>
-                          <div className="space-y-1 max-h-48 overflow-y-auto">
-                            {eventDetails.properties.text.map((item, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center justify-between text-sm bg-neutral-50 dark:bg-neutral-850 px-3 py-2 rounded"
-                              >
-                                <span className="text-neutral-900 dark:text-neutral-100">{item.value || "(empty)"}</span>
-                                <span className="text-neutral-500 dark:text-neutral-400 font-medium">
-                                  {item.count.toLocaleString()}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
+                          <button
+                            onClick={() => {
+                              const newExpanded = new Set(expandedProperties);
+                              if (newExpanded.has("text")) {
+                                newExpanded.delete("text");
+                              } else {
+                                newExpanded.add("text");
+                              }
+                              setExpandedProperties(newExpanded);
+                            }}
+                            className="flex items-center justify-between w-full text-left text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
+                          >
+                            <span>Button Text (sorted by frequency)</span>
+                            {expandedProperties.has("text") ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </button>
+                          {expandedProperties.has("text") && (
+                            <div className="space-y-1 max-h-48 overflow-y-auto">
+                              {eventDetails.properties.text.map((item, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center justify-between text-sm bg-neutral-50 dark:bg-neutral-850 px-3 py-2 rounded"
+                                >
+                                  <span className="text-neutral-900 dark:text-neutral-100">{item.value || "(empty)"}</span>
+                                  <span className="text-neutral-500 dark:text-neutral-400 font-medium">
+                                    {item.count.toLocaleString()}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
                       {eventDetails.properties.click_coordinate && eventDetails.properties.click_coordinate.length > 0 && (
                         <div className="space-y-2">
-                          <div className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
-                            Click Coordinates
-                          </div>
-                          <div className="space-y-1 max-h-48 overflow-y-auto">
-                            {eventDetails.properties.click_coordinate.map((item, index) => (
-                              <div
-                                key={index}
-                                className="flex items-center justify-between text-sm bg-neutral-50 dark:bg-neutral-850 px-3 py-2 rounded"
-                              >
-                                <span className="text-neutral-900 dark:text-neutral-100 font-mono text-xs">
-                                  {item.value || "(empty)"}
-                                </span>
-                                <span className="text-neutral-500 dark:text-neutral-400 font-medium">
-                                  {item.count.toLocaleString()}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
+                          <button
+                            onClick={() => {
+                              const newExpanded = new Set(expandedProperties);
+                              if (newExpanded.has("click_coordinate")) {
+                                newExpanded.delete("click_coordinate");
+                              } else {
+                                newExpanded.add("click_coordinate");
+                              }
+                              setExpandedProperties(newExpanded);
+                            }}
+                            className="flex items-center justify-between w-full text-left text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
+                          >
+                            <span>Click Coordinates</span>
+                            {expandedProperties.has("click_coordinate") ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                          </button>
+                          {expandedProperties.has("click_coordinate") && (
+                            <div className="space-y-1 max-h-48 overflow-y-auto">
+                              {eventDetails.properties.click_coordinate.map((item, index) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center justify-between text-sm bg-neutral-50 dark:bg-neutral-850 px-3 py-2 rounded"
+                                >
+                                  <span className="text-neutral-900 dark:text-neutral-100 font-mono text-xs">
+                                    {item.value || "(empty)"}
+                                  </span>
+                                  <span className="text-neutral-500 dark:text-neutral-400 font-medium">
+                                    {item.count.toLocaleString()}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
                       {/* Show other properties if they exist */}
@@ -876,24 +937,42 @@ export function SankeyDiagram({ journeys, steps, maxJourneys, domain, siteId, ti
                         .map(([key, values]) => (
                           values && values.length > 0 && (
                             <div key={key} className="space-y-2">
-                              <div className="text-xs font-medium text-neutral-600 dark:text-neutral-400 capitalize">
-                                {key.replace(/_/g, " ")}
-                              </div>
-                              <div className="space-y-1 max-h-32 overflow-y-auto">
-                                {values.slice(0, 5).map((item, index) => (
-                                  <div
-                                    key={index}
-                                    className="flex items-center justify-between text-sm bg-neutral-50 dark:bg-neutral-850 px-3 py-2 rounded"
-                                  >
-                                    <span className="text-neutral-900 dark:text-neutral-100 truncate">
-                                      {item.value || "(empty)"}
-                                    </span>
-                                    <span className="text-neutral-500 dark:text-neutral-400 font-medium ml-2">
-                                      {item.count.toLocaleString()}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
+                              <button
+                                onClick={() => {
+                                  const newExpanded = new Set(expandedProperties);
+                                  if (newExpanded.has(key)) {
+                                    newExpanded.delete(key);
+                                  } else {
+                                    newExpanded.add(key);
+                                  }
+                                  setExpandedProperties(newExpanded);
+                                }}
+                                className="flex items-center justify-between w-full text-left text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors capitalize"
+                              >
+                                <span>{key.replace(/_/g, " ")}</span>
+                                {expandedProperties.has(key) ? (
+                                  <ChevronUp className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDown className="h-4 w-4" />
+                                )}
+                              </button>
+                              {expandedProperties.has(key) && (
+                                <div className="space-y-1 max-h-32 overflow-y-auto">
+                                  {values.slice(0, 5).map((item, index) => (
+                                    <div
+                                      key={index}
+                                      className="flex items-center justify-between text-sm bg-neutral-50 dark:bg-neutral-850 px-3 py-2 rounded"
+                                    >
+                                      <span className="text-neutral-900 dark:text-neutral-100 truncate">
+                                        {item.value || "(empty)"}
+                                      </span>
+                                      <span className="text-neutral-500 dark:text-neutral-400 font-medium ml-2">
+                                        {item.count.toLocaleString()}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           )
                         ))}
