@@ -100,20 +100,14 @@ export const getJourneys = async (
             SELECT
               session_id,
               timestamp,
-              -- For pageviews, use pathname (truncate /asset/draft/... to /asset/draft); for events, use event label format
+              -- For pageviews, use pathname (trim to first segment only, e.g., /asset/draft/... -> /asset); for events, use event label format
               CASE
                 WHEN type = 'pageview' THEN 
-                  CASE
-                    WHEN startsWith(pathname, '/asset/draft/') THEN '/asset/draft'
-                    ELSE pathname
-                  END
+                  IF(length(splitByChar('/', pathname)) >= 3, CONCAT('/', splitByChar('/', pathname)[2]), pathname)
                 WHEN type IN ('custom_event', 'button_click', 'copy', 'form_submit', 'input_change', 'outbound') THEN
                   CONCAT('event:', type, IF(event_name != '' AND event_name IS NOT NULL, CONCAT(':', event_name), ''))
                 ELSE 
-                  CASE
-                    WHEN startsWith(pathname, '/asset/draft/') THEN '/asset/draft'
-                    ELSE pathname
-                  END
+                  IF(length(splitByChar('/', pathname)) >= 3, CONCAT('/', splitByChar('/', pathname)[2]), pathname)
               END AS step_label
             FROM events
             WHERE
